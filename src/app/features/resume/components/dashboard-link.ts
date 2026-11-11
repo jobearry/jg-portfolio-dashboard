@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLayoutDashboard } from '@ng-icons/lucide';
@@ -13,40 +13,16 @@ import { lucideLayoutDashboard } from '@ng-icons/lucide';
   selector: 'app-dashboard-link',
   imports: [RouterLink, NgIcon],
   providers: [provideIcons({ lucideLayoutDashboard })],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'inline-flex' },
   template: `
-    <a routerLink="/dashboard" aria-label="View dashboard" class="dashboard-link">
-      <ng-icon name="lucideLayoutDashboard" size="18" />
+    <a
+      routerLink="/dashboard"
+      aria-label="View dashboard"
+      class="inline-flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+    >
+      <ng-icon name="lucideLayoutDashboard" size="18" aria-hidden="true" />
     </a>
-  `,
-  styles: `
-    :host {
-      display: inline-block;
-    }
-
-    .dashboard-link {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px;
-      border-radius: 8px;
-      border: 1px solid transparent;
-      color: var(--muted-foreground);
-      transition:
-        background-color 0.2s ease,
-        color 0.2s ease;
-    }
-
-    .dashboard-link:hover {
-      background: var(--accent);
-      color: var(--accent-foreground);
-    }
-
-    .dashboard-link:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
   `,
 })
 export class DashboardLink {}

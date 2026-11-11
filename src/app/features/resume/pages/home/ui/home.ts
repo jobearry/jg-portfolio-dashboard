@@ -11,11 +11,11 @@ import { MAIN_BLOCK_CONTENT, SIDE_BLOCK_CONTENT } from '../constants/home.consta
 import { DynamicHostComponent } from '../components/host';
 import { BlockComponent } from '../components/block-container/block-container';
 import { Profile } from '../components/profile/profile';
-import { Footer } from '../../../components/footer';
+import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
 
 @Component({
   selector: 'app-home',
-  imports: [BlockComponent, Profile, NgIcon, DynamicHostComponent, Footer],
+  imports: [BlockComponent, Profile, NgIcon, DynamicHostComponent, ResumeFooter],
   providers: [
     provideIcons({ lucideAward, lucideBlocks, lucideHistory, lucideIdCard, lucideToolbox }),
   ],

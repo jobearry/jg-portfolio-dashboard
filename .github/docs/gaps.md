@@ -31,10 +31,10 @@ Known issues in the current app after the Tailwind rewrite.
 
 ## Résumé profile configuration gap
 
-- The public résumé Profile component uses `site.assets.profileAvatar` for its
-  image, but its name, location, role labels, and GitHub URL are still hardcoded
-  in `src/app/features/resume/pages/home/components/profile/profile.html`.
-  Its CV action currently points to `#` instead of `site.links.cv`.
+- The public résumé Profile component uses `site.assets.profileAvatar`,
+  `site.profile.location`, `site.links.github`, and `site.links.cv`. Its name
+  and role labels are still hardcoded in
+  `src/app/features/resume/pages/home/components/profile/profile.html`.
 
 ## Resolved in 006 (shell)
 

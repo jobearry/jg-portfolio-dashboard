@@ -5,6 +5,7 @@ export interface ProfileConfig {
   readonly handle: string;
   readonly role: string;
   readonly bio: string;
+  readonly location: string;
 }
 
 export interface LinkConfig {
@@ -44,6 +45,7 @@ export const site = {
     handle: '@jthan',
     role: 'Software Engineer',
     bio: 'A full-stack software engineer who specializes on developing web applications through Angular and .NET',
+    location: 'Quezon City, Philippines',
   },
   links: {
     github: 'https://github.com/jobearry',

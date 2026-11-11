@@ -26,7 +26,7 @@
 
       <p class="flex items-center text-base gap-2 justify-center md:justify-start">
         <ng-icon name="lucideMapPin" size="15" aria-hidden="true" />
-        <span>Quezon City, Philippines</span>
+        <span>{{ location }}</span>
       </p>
     </header>
 
@@ -40,7 +40,7 @@
               [class]="`p-1 flex gap-1 justify-center items-center border border-[#292929] rounded-full ${TRANSITION_MOVE_UP}`"
             >
               <a
-                href="https://github.com/jobearry"
+                [href]="githubUrl"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View GitHub profile"

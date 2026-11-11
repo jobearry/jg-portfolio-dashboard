@@ -6,7 +6,6 @@ import { ThemeToggler } from '../../../../components/theme-toggler';
 import { DashboardLink } from '../../../../components/dashboard-link';
 import { Pill } from '../../../../components/pill';
 import { site } from '../../../../../../core/config/site.config';
-import { environment } from '../../../../../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -15,7 +14,9 @@ import { environment } from '../../../../../../../environments/environment';
   templateUrl: './profile.html',
 })
 export class Profile {
-  protected readonly CV_URL = environment.cvURL;
+  protected readonly CV_URL = site.links.cv;
+  protected readonly githubUrl = site.links.github;
+  protected readonly location = site.profile.location;
   protected readonly TRANSITION_MOVE_UP = TRANSITION_MOVE_UP;
   protected readonly profileImage = `${site.assets.profileAvatar}`;
 }

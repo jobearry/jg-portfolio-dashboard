@@ -59,7 +59,7 @@ describe('App shell', () => {
     expect(resumeShell?.classList.contains('max-w-7xl')).toBe(true);
     expect(resumeShell?.classList.contains('lg:p-8')).toBe(true);
     expect(element.querySelector('app-profile')).toBeTruthy();
-    expect(element.querySelector('app-footer')).toBeTruthy();
+    expect(element.querySelector('app-resume-footer')).toBeTruthy();
     expect(element.querySelector('a[href="/dashboard"]')).toBeTruthy();
     const profileImage = element.querySelector('#profile-img');
     expect(profileImage?.getAttribute('src')).toBe(`${environment.imgDir}/jg-profile.png`);

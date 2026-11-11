@@ -43,7 +43,7 @@ src/main.ts
 providers: [
   provideBrowserGlobalErrorListeners(),
   provideHttpClient(withFetch()),
-  provideRouter(routes),
+  provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
   provideAppInitializer(() => {
     inject(ThemeService);
   }),
@@ -51,6 +51,7 @@ providers: [
 ```
 
 - `HttpClient` is registered app-wide, so `ApiClient` resolves on every route.
+- Router anchor scrolling is enabled for the résumé's section links.
 - The theme initializer applies the stored/system theme and keeps it on `<html>`.
 - No zone/change-detection configuration.
 - No global state, interceptors, retries, or guards.
@@ -154,9 +155,8 @@ Technical Stack in the main column. `BlockComponent` renders each titled block;
 
 - **Profile:** `pages/home/components/profile/` renders the photo, name,
   location, role labels, social/CV actions, dashboard link, and theme toggle.
-  The photo comes from `site.assets.profileAvatar`. The other profile text and
-  links are currently hardcoded; the CV action currently points to `#` (see
-  `.github/docs/gaps.md`).
+  The photo, location, GitHub link, and CV link come from `site`; the name and
+  role labels remain hardcoded (see `.github/docs/gaps.md`).
 - **Static content:** About and Certifications are local components. Profile
   role labels and certification labels use the `brand` variant in
   `components/pill.ts`; it produces the theme-aware plum tag.
@@ -194,9 +194,10 @@ requests in parallel:
 
 The page also provides a same-tab **Go back** action to `/`, plus shared
 dashboard and theme controls. The `components/` directory supplies reusable
-cards, pills, spinner, footer, dashboard link, and theme toggle; `Maintenance`
-is retained but unrouted. `core/models/github-repo.ts` defines the repository
-response, and `shared/constants/styles.constants.ts` holds the shared résumé
+cards, pills, spinner, footer (`resume-footer`), dashboard link, and theme
+toggle; `Maintenance` is retained but unrouted. `core/models/github-repo.ts`
+defines the repository response, and `shared/constants/styles.constants.ts`
+holds the shared résumé
 transition utility.
 
 ## 5. Data layer
@@ -205,7 +206,7 @@ transition utility.
 
 Single typed source of truth for personal content and public integrations:
 
-- `site.profile` — name, handle, role, bio.
+- `site.profile` — name, handle, role, bio, location.
 - `site.links` — GitHub and CV URLs.
 - `site.assets` — sidebar and profile avatar filenames (served from `public/`).
 - `site.notion` — page ID and public domain.
@@ -213,9 +214,9 @@ Single typed source of truth for personal content and public integrations:
 
 The object is `as const satisfies SiteConfig`. Consumers include route titles,
 dashboard shell/user menu/overview and its parked Profile page, Blog, and the
-résumé GitHub repository service. On the public résumé landing page, only the
-profile avatar currently comes from `site`; its other profile values and links
-remain hardcoded (see `.github/docs/gaps.md`). Menu labels/URLs/icons stay in
+résumé GitHub repository service. The public résumé profile reads its avatar,
+location, GitHub link, and CV link from `site`; its name and role labels remain
+hardcoded (see `.github/docs/gaps.md`). Menu labels/URLs/icons stay in
 `core/constants/sidebar-sections.ts`.
 
 ### `ApiClient` — `src/app/core/api/api-client.ts`

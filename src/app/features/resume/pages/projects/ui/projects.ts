@@ -9,14 +9,23 @@ import { GithubRepoSignalService } from '../../../github/github-repo.service';
 import { Pill } from '../../../components/pill';
 import { ThemeToggler } from '../../../components/theme-toggler';
 import { DashboardLink } from '../../../components/dashboard-link';
-import { Footer } from '../../../components/footer';
+import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
 import { ResumeProjectSignalService } from '../../../projects/project.service';
 import { Project as ApiProject } from '../../../../dashboard/core';
 import { Project as ProjectHighlight } from '../types/project.type';
 
 @Component({
   selector: 'app-projects',
-  imports: [Highlights, NgIcon, BlockComponent, Github, Pill, ThemeToggler, DashboardLink, Footer],
+  imports: [
+    Highlights,
+    NgIcon,
+    BlockComponent,
+    Github,
+    Pill,
+    ThemeToggler,
+    DashboardLink,
+    ResumeFooter,
+  ],
   providers: [provideIcons({ lucideArrowLeft, lucideBlocks })],
   templateUrl: './projects.html',
   styles: ``,
