@@ -59,9 +59,9 @@ export class Projects implements OnInit {
   }
 
   private readonly toHighlight = (project: ApiProject): ProjectHighlight => ({
-    id: project.projectId,
+    id: project.id,
     title: project.projectName,
     contribution: project.contribution || project.description,
-    tags: project.techStackSpecs?.map((spec) => spec.toolName) ?? [],
+    tags: project.techStacks?.map((stack) => stack.stackName) ?? [],
   });
 }

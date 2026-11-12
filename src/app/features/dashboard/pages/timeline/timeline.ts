@@ -67,7 +67,7 @@ import { ExperienceTimeline } from '../../core';
                   </h4>
 
                   <ul class="grid gap-3">
-                    @for (project of experience.projects; track project.projectId) {
+                    @for (project of experience.projects; track project.id) {
                       <li
                         class="flex flex-col gap-2 rounded-md border border-border bg-background/40 p-4"
                       >
@@ -77,11 +77,11 @@ import { ExperienceTimeline } from '../../core';
                         </p>
 
                         <ul class="flex flex-wrap gap-2">
-                          @for (spec of project.techStackSpecs ?? []; track spec.specId) {
+                          @for (stack of project.techStacks ?? []; track stack.id) {
                             <li
                               class="rounded-md bg-muted px-2 py-1 text-xs tracking-wide text-muted-foreground"
                             >
-                              {{ spec.toolName }}
+                              {{ stack.stackName }}
                             </li>
                           }
                         </ul>

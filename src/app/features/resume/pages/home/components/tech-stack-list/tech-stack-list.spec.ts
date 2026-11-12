@@ -32,9 +32,9 @@ describe('TechStackList', () => {
   it('loads skills and groups them by API category with derived marks', async () => {
     const fixture = render();
     skillsRequest().flush([
-      { id: 1, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'Angular' },
-      { id: 2, category: 'Backend', createdAt: '', imgSrc: '', stackName: 'ASP.NET' },
-      { id: 3, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'TypeScript' },
+      { id: 1, category: 'Frontend', imgSrc: null, stackName: 'Angular' },
+      { id: 2, category: 'Backend', imgSrc: null, stackName: 'ASP.NET' },
+      { id: 3, category: 'Frontend', imgSrc: null, stackName: 'TypeScript' },
     ]);
 
     await settle(fixture);
@@ -57,9 +57,9 @@ describe('TechStackList', () => {
   it('shows the full list without a fixed-height scroll area', async () => {
     const fixture = render();
     skillsRequest().flush([
-      { id: 1, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'Angular' },
-      { id: 2, category: 'Backend', createdAt: '', imgSrc: '', stackName: 'ASP.NET' },
-      { id: 3, category: 'Backend', createdAt: '', imgSrc: '', stackName: 'C#' },
+      { id: 1, category: 'Frontend', imgSrc: null, stackName: 'Angular' },
+      { id: 2, category: 'Backend', imgSrc: null, stackName: 'ASP.NET' },
+      { id: 3, category: 'Backend', imgSrc: null, stackName: 'C#' },
     ]);
 
     await settle(fixture);
@@ -99,9 +99,7 @@ describe('TechStackList', () => {
     expect(element.querySelector('[role="alert"]')?.textContent).toContain('503');
     (element.querySelector('[role="alert"] button') as HTMLButtonElement).click();
     fixture.detectChanges();
-    skillsRequest().flush([
-      { id: 1, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'Angular' },
-    ]);
+    skillsRequest().flush([{ id: 1, category: 'Frontend', imgSrc: null, stackName: 'Angular' }]);
 
     await settle(fixture);
 

@@ -1,12 +1,13 @@
-import { TechStack } from './techstack';
+import { TechStackItem } from './techstack';
 
+/**
+ * A project returned by the portfolio API. Both the résumé projects endpoint
+ * and nested experience projects use `id` and `techStacks`.
+ */
 export interface Project {
-  projectId: number;
+  id: number;
   projectName: string;
   description: string;
-  coverImg: string;
-  duration: number;
   contribution: string;
-
-  techStackSpecs?: TechStack[] | null;
+  techStacks?: TechStackItem[] | null;
 }

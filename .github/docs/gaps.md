@@ -150,8 +150,10 @@ Known issues in the current app after the Tailwind rewrite.
 - **`devicon.min.css` no longer loads.** The redesigned tech-stack list uses
   derived letter marks instead of logo fonts, so the former jsDelivr stylesheet
   was removed from `src/index.html`.
-- **`--type-color` is an alias** for `--foreground`, kept only because the
-  imported resume templates use it. New code should use the foreground token.
+- **`--type-color` was removed.** The alias for `--foreground` had no remaining
+  consumers after the block system and imported templates were deleted.
+- **`TRANSITION_MOVE_UP` was removed** with the old résumé card components; new
+  components declare their own transition classes.
 - The résumé and dashboard profile use the same `public/jg-profile.png` image.
 
 ## Dead code

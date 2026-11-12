@@ -100,17 +100,17 @@ redirects to `/`.
      timeline**, caption "Roles, responsibilities, and the projects I've worked
      on."
   2. Vertical list of bordered experience cards:
-     - Company `company.name` (`h3`)
-     - Subtle filled tag with start year from `duration.startedAt` using the
+     - Company `company` (`h3`)
+     - Subtle filled tag with start year from `startedAt` using the
        theme-aware `accent-brand`; it is omitted when the value is missing or
        not a valid date (no "Invalid Date")
-     - `role.value` | `description`
+     - `role` | `description`
      - `responsibility`
      - If projects exist: nested **PROJECTS** block (accent dot + `h4`)
        containing cards with:
        - `projectName`
        - `description`
-       - chips for each `techStackSpecs[].toolName`
+       - chips for each `techStacks[].stackName`
 - **Interactions:** none (read-only; no dialog, no links).
 - **Comparison:** the legacy `bak/experience` page used a project dialog instead of
   inline nested projects.

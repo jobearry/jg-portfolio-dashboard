@@ -42,11 +42,9 @@ describe('Projects', () => {
 
     projectRequest().flush([
       {
-        projectId: 7,
+        id: 7,
         projectName: 'Portal',
         description: 'Client portal',
-        coverImg: '',
-        duration: 12,
         contribution: 'Delivered the portal',
       },
     ]);
@@ -64,22 +62,13 @@ describe('Projects', () => {
 
     projectRequest().flush([
       {
-        projectId: 8,
+        id: 8,
         projectName: 'Dashboard',
         description: 'Internal dashboard',
-        coverImg: '',
-        duration: 6,
         contribution: 'Built the dashboard',
-        techStackSpecs: [
-          {
-            specId: 1,
-            toolName: 'Angular',
-            imgSrc: '',
-            createdAt: '',
-            stackId: 1,
-            stack: 'Frontend',
-          },
-          { specId: 2, toolName: '.NET', imgSrc: '', createdAt: '', stackId: 2, stack: 'Backend' },
+        techStacks: [
+          { id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' },
+          { id: 2, stackName: '.NET', imgSrc: null, category: 'Backend' },
         ],
       },
     ]);

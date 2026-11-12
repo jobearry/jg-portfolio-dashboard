@@ -197,8 +197,8 @@ It starts the client-project and GitHub repository requests in parallel:
 - `ResumeProjectSignalService` calls `v1/project?includeTools=false`. The page
   maps each API project to a `ProjectCard` in a responsive two-column grid,
   using contribution text or falling back to its description. Because the query
-  omits tools, project technology tags are normally empty; any
-  `techStackSpecs` returned are still mapped and rendered.
+  omits tools, project technology tags are normally empty; any `techStacks`
+  returned are still mapped and rendered.
 - `GithubRepoSignalService` calls
   `v1/github/owner/{site.github.username}/repositories`; the shared `RepoGrid`
   shows the full list, while the landing page uses only the first two.
@@ -212,9 +212,7 @@ non-interactive because the API exposes no project URL. The shared
 `components/` directory supplies pills, footer (`resume-footer`), header
 (`resume-header`), section panel (`resume-section`), dashboard link, theme
 toggle, and the repository card/grid; `Maintenance` is retained but unrouted.
-`core/models/github-repo.ts` defines the repository response, and
-`shared/constants/styles.constants.ts` holds the shared résumé transition
-utility.
+`core/models/github-repo.ts` defines the repository response.
 
 ## 5. Data layer
 
@@ -315,13 +313,10 @@ removed it.
   uppercase with camelCase/underscore word breaks and a matching local subtitle
   (key-derived fallback for unknown values). The same model types the GitHub and
   Notion count responses.
-- `ExperienceTimeline { id, company: Company, duration: Period, description, role: Role, responsibility, type, projects?: Project[] | null }`
-- `Project { projectId, projectName, description, coverImg, duration, contribution, techStackSpecs: TechStack[] }`
-- `TechStack { specId, toolName, imgSrc, createdAt, stackId, stack }`
-- `TechStackItem { id, category, createdAt, imgSrc, stackName }`
-- `FeedbackItem { id, personName, description, careerPosition: Role, postedAt }`
-- Value objects: `Company { name }`, `Period { startedAt, finishedAt, duration }`,
-  `Role { value }`
+- `ExperienceTimeline { id, company, role, startedAt, finishedAt, durationMonths, description, responsibility, type, projects?: Project[] | null }`
+- `Project { id, projectName, description, contribution, techStacks?: TechStackItem[] | null }`
+- `TechStackItem { id, stackName, imgSrc: string | null, category }`
+- `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
 
 `src/app/features/resume/core/models/`:
