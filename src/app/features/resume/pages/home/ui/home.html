@@ -1,43 +1,37 @@
-<section id="top" class="mx-auto grid w-full max-w-7xl gap-3 p-3 sm:gap-4 sm:p-4 lg:gap-6 lg:p-8">
-  <app-profile></app-profile>
+<app-resume-header />
 
-  <div class="grid grid-cols-6 gap-x-2 md:gap-x-6">
-    <!--side block-->
-    <div class="w-full col-span-full md:col-span-2">
-      @for (block of sideblock; track $index) {
-        <app-block [id]="block.id" [title]="block.title!" [class]="block.class! + ' rounded-sm'">
-          @if (block.icon) {
-            <ng-icon slot="icon" [name]="block.icon" />
-          }
+<main
+  id="top"
+  class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 pt-6 pb-16 sm:px-6 sm:pt-10"
+>
+  <app-hero />
 
-          <ng-container slot="content">
-            <app-host [component]="block.content!" [inputs]="block.inputs"> </app-host>
-          </ng-container>
-        </app-block>
-      }
-    </div>
+  <app-resume-section sectionId="about" title="About">
+    <ng-icon section-icon name="lucideIdCard" size="20" aria-hidden="true" />
+    <app-about />
+  </app-resume-section>
 
-    <!--main block-->
-    <div
-      class="w-full col-span-full md:col-span-4 md:[--card:var(--color-background)] md:[--card-foreground:var(--type-color)]"
-    >
-      @for (block of mainblock; track $index) {
-        <app-block
-          [id]="block.id"
-          [title]="block.title!"
-          [class]="`${block.class} rounded-sm md:rounded-none md:border-0 md:border-b`"
-        >
-          @if (block.icon) {
-            <ng-icon slot="icon" [name]="block.icon" />
-          }
+  <app-resume-section sectionId="experience" title="Experience">
+    <ng-icon section-icon name="lucideBriefcase" size="20" aria-hidden="true" />
+    <app-timeline />
+  </app-resume-section>
 
-          <ng-container slot="content">
-            <app-host [component]="block.content!" [inputs]="block.inputs"> </app-host>
-          </ng-container>
-        </app-block>
-      }
-    </div>
-  </div>
+  <app-resume-section sectionId="certifications" title="Certifications">
+    <ng-icon section-icon name="lucideAward" size="20" aria-hidden="true" />
+    <app-certifications />
+  </app-resume-section>
 
-  <app-resume-footer />
-</section>
+  <app-resume-section sectionId="tech-stack" title="Tech stack">
+    <ng-icon section-icon name="lucideCode" size="20" aria-hidden="true" />
+    <app-tech-stack-list />
+  </app-resume-section>
+
+  <app-resume-section sectionId="work" title="Recent projects">
+    <ng-icon section-icon name="lucideGrid" size="20" aria-hidden="true" />
+    <app-recent-repositories />
+  </app-resume-section>
+
+  <app-contact />
+</main>
+
+<app-resume-footer />

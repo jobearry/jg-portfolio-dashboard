@@ -20,6 +20,7 @@ describe('ResumeSection', () => {
     const element = fixture.nativeElement as HTMLElement;
     const section = element.querySelector('section');
 
+    expect(section?.id).toBe('about');
     expect(section?.getAttribute('aria-labelledby')).toBe('about-heading');
     expect(element.querySelector('h2#about-heading')?.textContent?.trim()).toBe('About');
     expect(element.textContent).toContain('About content');

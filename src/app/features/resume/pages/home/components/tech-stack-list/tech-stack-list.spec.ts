@@ -29,7 +29,7 @@ describe('TechStackList', () => {
 
   afterEach(() => http.verify());
 
-  it('loads skills and groups them by API category', async () => {
+  it('loads skills and groups them by API category with derived marks', async () => {
     const fixture = render();
     skillsRequest().flush([
       { id: 1, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'Angular' },
@@ -40,29 +40,42 @@ describe('TechStackList', () => {
     await settle(fixture);
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelectorAll('.tech-stack__group')).toHaveLength(2);
+    expect(element.querySelectorAll('section')).toHaveLength(2);
     expect(element.textContent).toContain('Frontend');
     expect(element.textContent).toContain('Backend');
     expect(element.textContent).toContain('Angular');
     expect(element.textContent).toContain('ASP.NET');
     expect(element.textContent).toContain('TypeScript');
+    expect(
+      [...element.querySelectorAll('li span[aria-hidden="true"]')].map((mark) =>
+        mark.textContent?.trim(),
+      ),
+    ).toEqual(['An', 'Ty', 'AN']);
+    expect(element.querySelector('a')).toBeNull();
   });
 
-  it('matches the Recent Projects content height and keeps the full skill list scrollable', async () => {
+  it('shows the full list without a fixed-height scroll area', async () => {
     const fixture = render();
     skillsRequest().flush([
       { id: 1, category: 'Frontend', createdAt: '', imgSrc: '', stackName: 'Angular' },
       { id: 2, category: 'Backend', createdAt: '', imgSrc: '', stackName: 'ASP.NET' },
+      { id: 3, category: 'Backend', createdAt: '', imgSrc: '', stackName: 'C#' },
     ]);
 
     await settle(fixture);
 
     const element = fixture.nativeElement as HTMLElement;
-    const skillList = element.querySelector('.tech-stack');
-    expect(skillList?.classList.contains('h-54')).toBe(true);
-    expect(skillList?.classList.contains('overflow-y-auto')).toBe(true);
-    expect(element.querySelectorAll('.tech-stack__group')).toHaveLength(2);
-    expect(element.querySelector('a')).toBeNull();
+    expect(element.querySelector('.tech-stack')).toBeNull();
+    expect(element.querySelectorAll('li')).toHaveLength(3);
+    expect(element.textContent).toContain('1 skill');
+    expect(element.textContent).toContain('2 skills');
+  });
+
+  it('shows a loading state while the request is pending', () => {
+    const fixture = render();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-skeleton')).not.toBeNull();
+    skillsRequest().flush([]);
   });
 
   it('shows an empty state when no skills are returned', async () => {

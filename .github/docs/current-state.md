@@ -147,35 +147,46 @@ global theme, site configuration, and API client.
 
 #### Landing page — `/`
 
-`pages/home/ui/home.ts` and `home.html` assemble the profile header, footer, and
-five content blocks. `pages/home/constants/home.constants.ts` places About,
-Timeline, and Certifications in the side column and Recent Projects and
-Technical Stack in the main column. `BlockComponent` renders each titled block;
-`DynamicHostComponent` creates its configured standalone content component.
+`pages/home/ui/home.ts` and `home.html` compose a linear layout:
+`ResumeHeader` → a `max-w-6xl` main containing the hero and five
+`ResumeSection` panels (About, Experience, Certifications, Tech stack, Recent
+projects) → the contact panel → `ResumeFooter`. Each panel receives a section
+`id` for fragment navigation. The former block-content constants, dynamic host,
+and profile component were removed from this page.
 
-- **Profile:** `pages/home/components/profile/` renders the photo, name,
-  location, role labels, social/CV actions, dashboard link, and theme toggle.
-  The photo, location, GitHub link, and CV link come from `site`; the name and
-  role labels remain hardcoded (see `.github/docs/gaps.md`).
-- **Static content:** About and Certifications are local components. Profile
-  role labels and certification labels use the `brand` variant in
-  `components/pill.ts`; it produces the theme-aware plum tag.
+- **Header:** `components/resume-header/` provides the top bar with the
+  name, fragment navigation (`about`, `experience`, `tech-stack`, `work`,
+  `contact`), theme toggle, and **View dashboard** link. Anchor navigation is
+  handled in the app shell configuration.
+- **Hero:** `pages/home/components/hero/hero.ts` uses `site.profile`,
+  `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`. It
+  renders the avatar, role eyebrow, a two-tone name headline, bio, location,
+  two role pills, **View projects** (`/projects`), **Download CV**, and a
+  GitHub action. Profile name, role, bio, location, avatar, and links come
+  from `site`; the second role pill and supporting copy are local.
+- **Static content:** `pages/home/components/about.ts` pairs the configured bio
+  with supporting paragraphs; `certifications/` lists the HackerRank
+  certifications. Labels use the `brand` variant in `components/pill.ts`.
 - **Timeline:** `pages/home/components/timeline/` uses the shared
   `ExperienceSignalService` and requests
   `v1/experience?includeProjects=false`. It sorts valid start dates newest
   first, places invalid dates after valid ones, and displays at most three
-  entries. Each entry shows company, role, and type; its filled accent year tag
-  is omitted for an invalid start date. Loading, empty, and retryable error
-  states are shown.
+  entries as a responsive horizontal/vertical timeline. Each entry shows the
+  period, role, company, type, and responsibility (falling back to
+  description); the period is omitted for an invalid start date. Loading,
+  empty, and retryable error states are shown.
 - **Recent Projects:** `pages/home/components/recent-repositories/` uses
-  `GithubRepoSignalService` and shows the first two public repositories.
-  Repository cards open GitHub in a new tab; loading, empty, and retryable
-  error states are supported. **View more** is a full-page `/projects` link
-  using the theme-aware accent and subtle accent hover.
+  `GithubRepoSignalService` and shows the first two public repositories through
+  the shared `components/repo-grid/` and `components/repo-card/`. Cards open
+  GitHub in a new tab; loading, empty, and retryable error states are
+  supported. **View more** links to `/projects`.
 - **Technical Stack:** `pages/home/components/tech-stack-list/` uses the shared
-  `SkillsSignalService` and `v1/skill`, groups skills by API category, and
-  displays them in a fixed-height scroll area with loading, empty, and retryable
-  error states.
+  `SkillsSignalService` and `v1/skill`, groups skills by API category into a
+  responsive grid, and derives a two-letter mark per skill. Loading, empty, and
+  retryable error states are shown; there is no fixed-height scroll area.
+- **Contact:** `pages/home/components/contact/contact.ts` closes the page with
+  CV, GitHub, and dashboard actions. There is no public email in `site`, so no
+  email affordance is rendered.
 
 #### Projects page — `/projects`
 

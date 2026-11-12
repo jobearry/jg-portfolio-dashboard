@@ -12,6 +12,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   host: { class: 'block' },
   template: `
     <section
+      [id]="sectionId()"
       [attr.aria-labelledby]="headingId()"
       class="scroll-mt-24 rounded-lg border border-border bg-card p-5 text-card-foreground sm:p-6"
     >

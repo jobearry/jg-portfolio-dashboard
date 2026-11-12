@@ -1,13 +1,21 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from '@angular/core';
-import { Card } from '../../../../components/card';
-import { Spinner } from '../../../../components/spinner';
+import { RepoGrid } from '../../../../components/repo-grid/repo-grid';
 import { GithubRepoSignalService } from '../../../../github/github-repo.service';
 
 @Component({
   selector: 'app-recent-repositories',
-  imports: [Card, Spinner],
-  templateUrl: './recent-repositories.html',
+  imports: [RepoGrid],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block' },
+  template: `
+    <app-repo-grid
+      [repos]="repositories()"
+      [loading]="state().loading"
+      [error]="state().error"
+      [showViewMore]="true"
+      (retry)="retry()"
+    />
+  `,
 })
 export class RecentRepositories implements OnInit {
   private readonly githubRepos = inject(GithubRepoSignalService);

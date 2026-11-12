@@ -29,12 +29,16 @@ Known issues in the current app after the Tailwind rewrite.
 - **Hardcoded Notion values** — page ID and public domain come from
   `site.notion`; the blog feature contains no literal.
 
-## Résumé profile configuration gap
+## Résumé landing content
 
-- The public résumé Profile component uses `site.assets.profileAvatar`,
-  `site.profile.location`, `site.links.github`, and `site.links.cv`. Its name
-  and role labels are still hardcoded in
-  `src/app/features/resume/pages/home/components/profile/profile.html`.
+- Identity and links are configured: the hero reads `site.profile.name`,
+  `site.profile.role`, `site.profile.bio`, `site.profile.location`,
+  `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`.
+- Remaining landing copy is local to components: the second hero role pill
+  (“Fullstack Developer”), the About supporting paragraphs, and the
+  certification labels are hardcoded.
+- The contact panel has no email action because `site` exposes no public email;
+  it links to the CV, GitHub, and dashboard instead.
 
 ## Resolved in 006 (shell)
 
@@ -143,9 +147,9 @@ Known issues in the current app after the Tailwind rewrite.
   `src/app/components/maintenance.ts` and
   `src/app/features/resume/components/maintenance.ts`. Both stay inside their
   own feature; unifying them is optional cleanup.
-- **`devicon.min.css` loads from jsDelivr** in `src/index.html` to render the
-  tech-stack logos on the landing page. It is the one external runtime asset;
-  vendoring it would remove the third-party request.
+- **`devicon.min.css` no longer loads.** The redesigned tech-stack list uses
+  derived letter marks instead of logo fonts, so the former jsDelivr stylesheet
+  was removed from `src/index.html`.
 - **`--type-color` is an alias** for `--foreground`, kept only because the
   imported resume templates use it. New code should use the foreground token.
 - The résumé and dashboard profile use the same `public/jg-profile.png` image.

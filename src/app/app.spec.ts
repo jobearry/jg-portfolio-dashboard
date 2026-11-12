@@ -51,21 +51,22 @@ describe('App shell', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    const resumeShell = element.querySelector('app-home > section');
+    const resumeShell = element.querySelector('app-home > main');
     expect(router.url).toBe('/');
     expect(element.querySelector('app-shell-sidebar')).toBeFalsy();
     expect(element.querySelector('app-maintenance')).toBeFalsy();
     expect(resumeShell?.classList.contains('mx-auto')).toBe(true);
-    expect(resumeShell?.classList.contains('max-w-7xl')).toBe(true);
-    expect(resumeShell?.classList.contains('lg:p-8')).toBe(true);
-    expect(element.querySelector('app-profile')).toBeTruthy();
+    expect(resumeShell?.classList.contains('max-w-6xl')).toBe(true);
+    expect(resumeShell?.classList.contains('sm:pt-10')).toBe(true);
+    expect(element.querySelector('app-hero')).toBeTruthy();
+    expect(element.querySelector('app-resume-header')).toBeTruthy();
     expect(element.querySelector('app-resume-footer')).toBeTruthy();
     expect(element.querySelector('a[href="/dashboard"]')).toBeTruthy();
-    const profileImage = element.querySelector('#profile-img');
+    const profileImage = element.querySelector('#hero-image');
     expect(profileImage?.getAttribute('src')).toBe(`${environment.imgDir}/jg-profile.png`);
-    expect(profileImage?.classList.contains('size-28')).toBe(true);
-    expect(profileImage?.classList.contains('sm:size-32')).toBe(true);
-    expect(profileImage?.classList.contains('md:size-40')).toBe(true);
+    expect(profileImage?.classList.contains('size-24')).toBe(true);
+    expect(profileImage?.classList.contains('sm:size-28')).toBe(true);
+    expect(profileImage?.classList.contains('md:size-32')).toBe(true);
     expect(profileImage?.classList.contains('rounded-full')).toBe(true);
     expect(profileImage?.classList.contains('object-cover')).toBe(true);
   });
@@ -129,7 +130,7 @@ describe('App shell', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(router.url).toBe('/');
     expect(element.querySelector('app-shell-sidebar')).toBeFalsy();
-    expect(element.querySelector('app-profile')).toBeTruthy();
+    expect(element.querySelector('app-hero')).toBeTruthy();
   });
 
   it('keeps every live route reachable', async () => {

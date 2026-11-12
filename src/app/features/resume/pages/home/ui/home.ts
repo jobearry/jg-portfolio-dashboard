@@ -1,34 +1,40 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideAward,
-  lucideBlocks,
-  lucideHistory,
+  lucideBriefcase,
+  lucideCode,
+  lucideGrid,
   lucideIdCard,
-  lucideToolbox,
 } from '@ng-icons/lucide';
-import { MAIN_BLOCK_CONTENT, SIDE_BLOCK_CONTENT } from '../constants/home.constants';
-import { DynamicHostComponent } from '../components/host';
-import { BlockComponent } from '../components/block-container/block-container';
-import { Profile } from '../components/profile/profile';
 import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
+import { ResumeHeader } from '../../../components/resume-header/resume-header';
+import { ResumeSection } from '../../../components/resume-section/resume-section';
+import { About } from '../components/about';
+import { Certifications } from '../components/certifications/certifications';
+import { Contact } from '../components/contact/contact';
+import { Hero } from '../components/hero/hero';
+import { RecentRepositories } from '../components/recent-repositories/recent-repositories';
+import { TechStackList } from '../components/tech-stack-list/tech-stack-list';
+import { Timeline } from '../components/timeline/timeline';
 
 @Component({
   selector: 'app-home',
-  imports: [BlockComponent, Profile, NgIcon, DynamicHostComponent, ResumeFooter],
-  providers: [
-    provideIcons({ lucideAward, lucideBlocks, lucideHistory, lucideIdCard, lucideToolbox }),
+  imports: [
+    NgIcon,
+    ResumeHeader,
+    ResumeFooter,
+    ResumeSection,
+    Hero,
+    About,
+    Timeline,
+    Certifications,
+    TechStackList,
+    RecentRepositories,
+    Contact,
   ],
+  providers: [provideIcons({ lucideAward, lucideBriefcase, lucideCode, lucideGrid, lucideIdCard })],
   templateUrl: './home.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Home implements OnInit {
-  sideblock = SIDE_BLOCK_CONTENT;
-  mainblock = MAIN_BLOCK_CONTENT;
-  isDesktop = window.innerHeight >= 768;
-  @HostListener('window:resize') onResize() {
-    this.isDesktop = window.innerWidth >= 768;
-  }
-  ngOnInit(): void {
-    this.isDesktop = window.innerWidth >= 768;
-  }
-}
+export class Home {}

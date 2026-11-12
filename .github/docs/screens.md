@@ -157,46 +157,39 @@ redirects to `/`.
 ## 5. Resume landing — `/`
 
 - **Files:** `features/resume/pages/home/ui/home.{ts,html}`,
-  `pages/home/constants/home.constants.ts`, `pages/home/components/**`,
-  `components/**`
+  `pages/home/components/**`, `components/**`
 - **Reach:** the empty path with `pathMatch: 'full'`, declared directly above the
   dashboard shell route. Renders **without** the dashboard shell.
-- **Shows:**
-  - Profile header: circularly cropped photo (`/jg-profile.png`), name,
-    `lucideMapPin` + location, two theme-aware plum role tags, GitHub and CV
-    actions, and the top-right **View dashboard** + theme toggle pair. The
-    location, GitHub URL, and CV URL come from `site`; the profile name and role
-    labels are still hardcoded.
-  - Centered, width-capped page container with increased padding and column
-    gutters at desktop sizes.
-  - Two-column responsive grid built from `SIDE_BLOCK_CONTENT` and
-    `MAIN_BLOCK_CONTENT`: About, Timeline, Certifications, Recent Projects, and
-    Technical Stack. The résumé Maintenance component is retained but not
-    currently rendered.
+- **Shows:** a linear public résumé layout inside a `max-w-6xl` container:
+  - `ResumeHeader` with the name, fragment links (About, Experience, Tech
+    stack, Work, Contact), theme toggle, and **View dashboard**.
+  - Hero: circularly cropped photo (`/jg-profile.png`), uppercase role eyebrow,
+    two-tone name headline, bio, `lucideMapPin` + location, two plum role tags,
+    **View projects**, **Download CV**, and a GitHub icon action. Photo,
+    location, GitHub URL, CV URL, name, role, and bio all come from `site`.
+  - Section panels built with `ResumeSection` and scroll offsets: About
+    (bio-led two-column copy), Experience (responsive timeline), Certifications
+    (HackerRank labels), Tech stack (category grid with derived marks), and
+    Recent projects (two repository cards).
+  - Closing Contact panel with **Download CV**, **View GitHub**, and **View
+    dashboard** actions. No email is shown because `site` has no public email.
   - Footer with the current year, name, GitHub link, back-to-top link, and a red
     `DEV` marker when `environment.title` is non-empty (development builds only).
-- **Data:** About and Certifications are static; certification labels use
-  the same theme-aware plum tag styling as the profile roles. Timeline loads
+- **Data:** About and Certifications are static. Timeline loads
   `ExperienceTimeline[]` from `v1/experience?includeProjects=false`, sorts
   valid start dates newest first (invalid dates after valid ones), and displays
-  at most three entries in a fixed-height vertical list. Entries show company,
-  role, and type; the year uses a subtle filled `accent-brand` tag and is hidden
-  for invalid dates.
-  Technical Stack loads `TechStackItem[]` from
-  `v1/skill` and groups skills by their API category. Its scrollable content
-  area is the same fixed height as Recent Projects. Recent Projects loads the
-  first two public repositories from
+  at most three entries. Entries show period, role, company, type, and
+  responsibility (falling back to description); invalid dates omit the period.
+  Tech stack loads `TechStackItem[]` from `v1/skill` and groups skills by API
+  category. Recent projects loads the first two public repositories from
   `v1/github/owner/{username}/repositories`.
 - **Title:** `Jonathan Golimlim | Software Engineer`.
-- **Interactions:** _View more_ inside Recent Projects uses a theme-aware
-  `accent-brand` link with a subtle accent hover and normal `/projects`
-  navigation, reloading the application and project data on each click; **View
-  dashboard** navigates to `/dashboard`; the theme toggle uses the shared
-  `ThemeService`.
-- Technical Stack has no View more link until a destination is defined; the
-  full skill list is available by scrolling within its content area.
-- **Data states:** Timeline, Technical Stack, and Recent Projects each show
-  loading, empty, and retryable error states for their API requests.
+- **Interactions:** **View projects** and **View more** navigate to `/projects`;
+  **View dashboard** navigates to `/dashboard`; header fragment links scroll to
+  section anchors; the theme toggle uses the shared `ThemeService`.
+- **Data states:** Timeline, Tech stack, and Recent projects each show loading,
+  empty, and retryable error states for their API requests. Recent projects
+  renders **View more** only after its data loads.
 
 ---
 
