@@ -157,8 +157,13 @@ Known issues in the current app after the Tailwind rewrite.
 ## Dead code
 
 - The unused résumé terminal widget and older marquee-based tech-stack
-  component were removed during résumé cleanup. The landing page's active tech-stack list
-  remains in use; its Maintenance component is retained but no longer rendered.
+  component were removed during résumé cleanup. The landing page's active
+  tech-stack list remains in use; its Maintenance component is retained but no
+  longer rendered.
+- The redesign removed the résumé block system (`BlockComponent`, dynamic host,
+  block constants/types), the old `Card`, `Github`, `Highlights`, and `Spinner`
+  components. The projects page now uses `ResumeSection`, `ProjectCard`, and
+  `RepoGrid`.
 - No known Spartan or rewrite dead code remains.
 
 ## Tooling / fixtures

@@ -59,6 +59,62 @@ describe('Projects', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Angular');
   });
 
+  it('renders project technologies and the full repository list', async () => {
+    const fixture = render();
+
+    projectRequest().flush([
+      {
+        projectId: 8,
+        projectName: 'Dashboard',
+        description: 'Internal dashboard',
+        coverImg: '',
+        duration: 6,
+        contribution: 'Built the dashboard',
+        techStackSpecs: [
+          {
+            specId: 1,
+            toolName: 'Angular',
+            imgSrc: '',
+            createdAt: '',
+            stackId: 1,
+            stack: 'Frontend',
+          },
+          { specId: 2, toolName: '.NET', imgSrc: '', createdAt: '', stackId: 2, stack: 'Backend' },
+        ],
+      },
+    ]);
+    githubRequest().flush([
+      {
+        id: 1,
+        name: 'repo-one',
+        fullName: 'jobearry/repo-one',
+        htmlUrl: 'https://github.com/jobearry/repo-one',
+        description: 'First repository',
+        language: 'TypeScript',
+        topics: [],
+      },
+      {
+        id: 2,
+        name: 'repo-two',
+        fullName: 'jobearry/repo-two',
+        htmlUrl: 'https://github.com/jobearry/repo-two',
+        description: 'Second repository',
+        language: 'C#',
+        topics: [],
+      },
+    ]);
+
+    await settle(fixture);
+
+    const element = fixture.nativeElement as HTMLElement;
+    const technologies = element.querySelector('[aria-label="Project technologies"]');
+    expect(technologies?.textContent).toContain('Angular');
+    expect(technologies?.textContent).toContain('.NET');
+    expect(element.querySelectorAll('app-repo-card')).toHaveLength(2);
+    expect(element.textContent).toContain('repo-one');
+    expect(element.textContent).toContain('repo-two');
+  });
+
   it('renders an empty state when the API returns no projects', async () => {
     const fixture = render();
     projectRequest().flush([]);

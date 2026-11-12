@@ -196,22 +196,28 @@ redirects to `/`.
 ## 6. Projects — `/projects`
 
 - **Files:** `features/resume/pages/projects/ui/projects.{ts,html}`,
-  `pages/projects/components/highlights.ts`, `features/resume/projects/project.service.ts`
+  `pages/projects/components/project-card/`,
+  `features/resume/projects/project.service.ts`
 - **Reach:** top-level `projects` route, above the shell.
-- **Shows:** a back button (`/`), a **Projects** pill, the **View dashboard**
-  link and the public theme toggle at the right,
-  a **Client Projects** block built from the API, and
-  a **Github Repos** block listing public repositories.
+- **Shows:** the public `ResumeHeader`, then a `max-w-6xl` main with a **Back to
+  profile** link, a **Selected work** eyebrow, the **Projects** heading, and a
+  short description. Two `ResumeSection` panels follow:
+  - **Client projects** — responsive two-column cards built from the API. Each
+    card shows its index, title, contribution (or description), and any
+    technology tags returned. Cards are non-interactive because the API has no
+    project URL.
+  - **GitHub repositories** — the shared `RepoGrid` with the full public
+    repository list, identical cards to the landing-page preview.
+    The page ends with `ResumeFooter`.
 - **Data:** `GithubRepoSignalService` →
   `ApiClient.get('v1/github/owner/{username}/repositories')`;
   `ResumeProjectSignalService` → `ApiClient.get('v1/project?includeTools=false')`.
 - The GitHub repository block shows the full result here; the home page shows
   the first two returned repositories as its Recent Projects preview.
 - **States:**
-  - Loading — spinner in the Client Projects and GitHub block headers.
+  - Loading — card skeletons in each section.
   - Empty — separate messages for client projects and GitHub repositories.
-  - Error — client projects show a `role="alert"` message with **Try again**;
-    GitHub repositories show an independent `role="alert"` message.
+  - Error — each section shows a `role="alert"` message with **Try again**.
 - **Note:** the list uses the same owner/repositories route as the dashboard's
   GitHub count, without the `/count` suffix.
 

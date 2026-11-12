@@ -190,26 +190,31 @@ and profile component were removed from this page.
 
 #### Projects page — `/projects`
 
-`pages/projects/ui/projects.ts` starts the client-project and GitHub repository
-requests in parallel:
+`pages/projects/ui/projects.ts` renders `ResumeHeader`, a page intro with a
+**Back to profile** link, two `ResumeSection` panels, and `ResumeFooter`.
+It starts the client-project and GitHub repository requests in parallel:
 
 - `ResumeProjectSignalService` calls `v1/project?includeTools=false`. The page
-  maps each API project to a highlight, using contribution text or falling back
-  to its description and listing technology names as tags.
+  maps each API project to a `ProjectCard` in a responsive two-column grid,
+  using contribution text or falling back to its description. Because the query
+  omits tools, project technology tags are normally empty; any
+  `techStackSpecs` returned are still mapped and rendered.
 - `GithubRepoSignalService` calls
-  `v1/github/owner/{site.github.username}/repositories`; this page shows the
-  full list, while the landing page uses only the first two. Repository links
-  open in a new tab.
+  `v1/github/owner/{site.github.username}/repositories`; the shared `RepoGrid`
+  shows the full list, while the landing page uses only the first two.
+  Repository links open in a new tab.
 - Client projects have loading, empty, and retryable error states. GitHub
-  repositories have loading, empty, and error states.
+  repositories have loading, empty, and retryable error states through
+  `RepoGrid`.
 
-The page also provides a same-tab **Go back** action to `/`, plus shared
-dashboard and theme controls. The `components/` directory supplies reusable
-cards, pills, spinner, footer (`resume-footer`), dashboard link, and theme
-toggle; `Maintenance` is retained but unrouted. `core/models/github-repo.ts`
-defines the repository response, and `shared/constants/styles.constants.ts`
-holds the shared résumé
-transition utility.
+`pages/projects/components/project-card/` is presentational and
+non-interactive because the API exposes no project URL. The shared
+`components/` directory supplies pills, footer (`resume-footer`), header
+(`resume-header`), section panel (`resume-section`), dashboard link, theme
+toggle, and the repository card/grid; `Maintenance` is retained but unrouted.
+`core/models/github-repo.ts` defines the repository response, and
+`shared/constants/styles.constants.ts` holds the shared résumé transition
+utility.
 
 ## 5. Data layer
 

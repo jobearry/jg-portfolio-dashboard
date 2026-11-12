@@ -114,9 +114,12 @@ describe('App shell', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(router.url).toBe('/projects');
     expect(element.querySelector('app-shell-sidebar')).toBeFalsy();
-    expect(element.querySelectorAll('app-block').length).toBeGreaterThanOrEqual(2);
-    expect(element.querySelector('app-github')).toBeTruthy();
+    expect(element.querySelector('app-resume-header')).toBeTruthy();
+    expect(element.querySelector('#projects-heading')?.textContent).toContain('Projects');
+    expect(element.querySelectorAll('app-resume-section').length).toBe(2);
+    expect(element.querySelector('app-repo-grid')).toBeTruthy();
     expect(element.querySelector('a[href="/dashboard"]')).toBeTruthy();
+    expect(element.querySelector('a[href="/"]')).toBeTruthy();
   });
 
   it('redirects the legacy /profile path to the résumé at /', async () => {

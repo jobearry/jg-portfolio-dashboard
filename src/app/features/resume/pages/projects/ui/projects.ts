@@ -1,55 +1,61 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft, lucideBlocks } from '@ng-icons/lucide';
-import { Router } from '@angular/router';
-import { Highlights } from '../components/highlights';
-import { BlockComponent } from '../../home/components/block-container/block-container';
-import { Github } from '../../../github/ui/github';
-import { GithubRepoSignalService } from '../../../github/github-repo.service';
-import { Pill } from '../../../components/pill';
-import { ThemeToggler } from '../../../components/theme-toggler';
-import { DashboardLink } from '../../../components/dashboard-link';
-import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
-import { ResumeProjectSignalService } from '../../../projects/project.service';
+import { lucideArrowLeft, lucideBriefcase, lucideGithub } from '@ng-icons/lucide';
+import { RouterLink } from '@angular/router';
+import { Skeleton, StateMessage } from '../../../../../shared';
 import { Project as ApiProject } from '../../../../dashboard/core';
+import { RepoGrid } from '../../../components/repo-grid/repo-grid';
+import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
+import { ResumeHeader } from '../../../components/resume-header/resume-header';
+import { ResumeSection } from '../../../components/resume-section/resume-section';
+import { GithubRepoSignalService } from '../../../github/github-repo.service';
+import { ResumeProjectSignalService } from '../../../projects/project.service';
+import { ProjectCard } from '../components/project-card/project-card';
 import { Project as ProjectHighlight } from '../types/project.type';
 
 @Component({
   selector: 'app-projects',
   imports: [
-    Highlights,
     NgIcon,
-    BlockComponent,
-    Github,
-    Pill,
-    ThemeToggler,
-    DashboardLink,
+    RouterLink,
+    Skeleton,
+    StateMessage,
+    RepoGrid,
+    ResumeHeader,
     ResumeFooter,
+    ResumeSection,
+    ProjectCard,
   ],
-  providers: [provideIcons({ lucideArrowLeft, lucideBlocks })],
+  providers: [provideIcons({ lucideArrowLeft, lucideBriefcase, lucideGithub })],
   templateUrl: './projects.html',
-  styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Projects implements OnInit {
-  private readonly router = inject(Router);
   private readonly githubRepos = inject(GithubRepoSignalService);
   private readonly projects = inject(ResumeProjectSignalService);
 
-  readonly projectState = computed(() => this.projects.getState());
-  readonly corpoProjects = computed(() => this.projectState().content.map(this.toHighlight));
-  readonly githubState = computed(() => this.githubRepos.getState());
+  protected readonly projectState = computed(() => this.projects.getState());
+  protected readonly clientProjects = computed(() =>
+    this.projectState().content.map(this.toHighlight),
+  );
+  protected readonly githubState = computed(() => this.githubRepos.getState());
+  protected readonly repositories = computed(() => this.githubState().content);
 
   ngOnInit(): void {
     void this.githubRepos.load();
     void this.projects.load();
   }
 
-  goHome(): void {
-    void this.router.navigate(['/']);
+  protected loadProjects(): void {
+    void this.projects.load();
   }
 
-  loadProjects(): void {
-    void this.projects.load();
+  protected loadRepositories(): void {
+    void this.githubRepos.load();
+  }
+
+  protected label(index: number): string {
+    return String(index + 1).padStart(2, '0');
   }
 
   private readonly toHighlight = (project: ApiProject): ProjectHighlight => ({

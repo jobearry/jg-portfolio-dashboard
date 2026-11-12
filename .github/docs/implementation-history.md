@@ -52,3 +52,4 @@ this list is historical, not an open-work queue. Use
 | 039 | Résumé shell spacing                                          |
 | 040 | Hiding the résumé maintenance placeholder                     |
 | 041 | Résumé redesign: public shell and landing page                |
+| 042 | Résumé redesign: projects page                                |
