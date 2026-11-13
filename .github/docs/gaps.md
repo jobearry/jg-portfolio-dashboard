@@ -29,12 +29,18 @@ Known issues in the current app after the Tailwind rewrite.
 - **Hardcoded Notion values** — page ID and public domain come from
   `site.notion`; the blog feature contains no literal.
 
-## Résumé profile configuration gap
+## Résumé landing content
 
-- The public résumé Profile component uses `site.assets.profileAvatar` for its
-  image, but its name, location, role labels, and GitHub URL are still hardcoded
-  in `src/app/features/resume/pages/home/components/profile/profile.html`.
-  Its CV action currently points to `#` instead of `site.links.cv`.
+- Identity and links are configured: the hero reads `site.profile.name`,
+  `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`; the
+  About section reads `site.profile.role`, `site.profile.location`, and
+  `site.profile.handle`.
+- Remaining landing copy is local to components: the About fastfetch section,
+  including its `cat bio.txt` narrative and facts, and the certification labels
+  are hardcoded.
+- The contact panel publishes the résumé email from `site.links.email` with a
+  primary **Send email** (`mailto:`) CTA and keeps the CV, GitHub, and dashboard
+  as secondary actions.
 
 ## Resolved in 006 (shell)
 
@@ -130,7 +136,7 @@ Known issues in the current app after the Tailwind rewrite.
   route with `/count`.
 - The resume Projects page reads client projects from
   `v1/project?includeTools=false`; the home page's Recent Projects preview is
-  limited to the first two repositories returned by the GitHub list endpoint.
+  limited to the first three repositories returned by the GitHub list endpoint.
 
 ## Resume import (020)
 
@@ -143,18 +149,25 @@ Known issues in the current app after the Tailwind rewrite.
   `src/app/components/maintenance.ts` and
   `src/app/features/resume/components/maintenance.ts`. Both stay inside their
   own feature; unifying them is optional cleanup.
-- **`devicon.min.css` loads from jsDelivr** in `src/index.html` to render the
-  tech-stack logos on the landing page. It is the one external runtime asset;
-  vendoring it would remove the third-party request.
-- **`--type-color` is an alias** for `--foreground`, kept only because the
-  imported resume templates use it. New code should use the foreground token.
+- **`devicon.min.css` no longer loads.** The redesigned tech-stack list uses
+  derived letter marks instead of logo fonts, so the former jsDelivr stylesheet
+  was removed from `src/index.html`.
+- **`--type-color` was removed.** The alias for `--foreground` had no remaining
+  consumers after the block system and imported templates were deleted.
+- **`TRANSITION_MOVE_UP` was removed** with the old résumé card components; new
+  components declare their own transition classes.
 - The résumé and dashboard profile use the same `public/jg-profile.png` image.
 
 ## Dead code
 
 - The unused résumé terminal widget and older marquee-based tech-stack
-  component were removed during résumé cleanup. The landing page's active tech-stack list
-  remains in use; its Maintenance component is retained but no longer rendered.
+  component were removed during résumé cleanup. The landing page's active
+  tech-stack list remains in use; its Maintenance component is retained but no
+  longer rendered.
+- The redesign removed the résumé block system (`BlockComponent`, dynamic host,
+  block constants/types), the old `Card`, `Github`, `Highlights`, and `Spinner`
+  components. The projects page now uses `ResumeSection`, `ProjectCard`, and
+  `RepoGrid`.
 - No known Spartan or rewrite dead code remains.
 
 ## Tooling / fixtures

@@ -1,20 +1,69 @@
-<section class="tech-stack m-6 flex h-54 flex-col gap-2 overflow-y-auto">
-  @if (state().loading) {
-    <app-skeleton variant="grid" [rows]="4" />
-  } @else if (state().error) {
-    <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
-  } @else if (groups().length === 0) {
-    <app-state-message kind="empty" message="No skills have been published yet." />
-  } @else {
-    @for (group of groups(); track group.category) {
-      <section class="tech-stack__group" [attr.aria-labelledby]="'skills-' + $index">
-        <h3 [id]="'skills-' + $index">{{ group.category }}</h3>
-        <ul class="m-2 flex flex-wrap items-center gap-2">
+@if (state().loading) {
+  <app-skeleton variant="grid" [rows]="6" />
+} @else if (state().error) {
+  <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
+} @else if (groups().length === 0) {
+  <app-state-message kind="empty" message="No skills have been published yet." />
+} @else {
+  <div
+    class="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3"
+  >
+    @for (group of visibleGroups(); track group.category) {
+      <section class="bg-card p-5" [attr.aria-labelledby]="'skills-' + $index">
+        <div class="flex items-baseline gap-2">
+          <span class="font-mono text-[10px] text-accent-brand">{{ group.index }}</span>
+          <h3 [id]="'skills-' + $index" class="text-sm font-semibold text-foreground">
+            {{ group.category }}
+          </h3>
+        </div>
+
+        <p class="mt-2 text-xs text-muted-foreground">
+          {{ group.skills.length }} {{ group.skills.length === 1 ? 'skill' : 'skills' }}
+        </p>
+
+        <ul
+          class="mt-5 grid gap-2 rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          [class.max-h-54]="!expanded()"
+          [class.overflow-y-auto]="!expanded()"
+          [class.overscroll-contain]="!expanded()"
+          [class.pr-1]="!expanded()"
+          [class.scroll-fade]="scrolls(group)"
+          [attr.tabindex]="scrolls(group) ? 0 : null"
+          [attr.aria-label]="group.category + ' skills'"
+        >
           @for (skill of group.skills; track skill.id) {
-            <li><app-pill [label]="skill.stackName" size="sm" /></li>
+            <li
+              class="flex min-h-12 items-center gap-3 rounded-md border border-border bg-background/50 p-2 transition-colors hover:border-accent-brand/50"
+            >
+              <span
+                class="flex size-8 shrink-0 items-center justify-center rounded bg-accent-brand/10 font-mono text-[10px] font-bold text-accent-brand"
+                aria-hidden="true"
+              >
+                {{ mark(skill.stackName) }}
+              </span>
+              <strong class="text-xs font-medium text-foreground">{{ skill.stackName }}</strong>
+            </li>
           }
         </ul>
       </section>
     }
+  </div>
+
+  @if (overflows()) {
+    <div class="mt-5 flex justify-end">
+      <button
+        type="button"
+        [attr.aria-expanded]="expanded()"
+        (click)="toggle()"
+        class="inline-flex items-center gap-2 rounded-md text-sm font-medium text-accent-brand transition-colors hover:text-accent-brand/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        {{ expanded() ? 'Show less' : 'View more' }}
+        <ng-icon
+          [name]="expanded() ? 'lucideChevronUp' : 'lucideChevronDown'"
+          size="16"
+          aria-hidden="true"
+        />
+      </button>
+    </div>
   }
-</section>
+}

@@ -21,11 +21,9 @@ describe('ResumeProjectSignalService', () => {
   it('loads projects without tools from the portfolio API', async () => {
     const projects = [
       {
-        projectId: 7,
+        id: 7,
         projectName: 'Portal',
         description: 'Client portal',
-        coverImg: '',
-        duration: 12,
         contribution: 'Delivered the portal',
       },
     ];

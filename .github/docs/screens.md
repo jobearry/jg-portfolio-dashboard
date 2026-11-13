@@ -100,17 +100,17 @@ redirects to `/`.
      timeline**, caption "Roles, responsibilities, and the projects I've worked
      on."
   2. Vertical list of bordered experience cards:
-     - Company `company.name` (`h3`)
-     - Subtle filled tag with start year from `duration.startedAt` using the
+     - Company `company` (`h3`)
+     - Subtle filled tag with start year from `startedAt` using the
        theme-aware `accent-brand`; it is omitted when the value is missing or
        not a valid date (no "Invalid Date")
-     - `role.value` | `description`
+     - `role` | `description`
      - `responsibility`
      - If projects exist: nested **PROJECTS** block (accent dot + `h4`)
        containing cards with:
        - `projectName`
        - `description`
-       - chips for each `techStackSpecs[].toolName`
+       - chips for each `techStacks[].stackName`
 - **Interactions:** none (read-only; no dialog, no links).
 - **Comparison:** the legacy `bak/experience` page used a project dialog instead of
   inline nested projects.
@@ -157,68 +157,80 @@ redirects to `/`.
 ## 5. Resume landing — `/`
 
 - **Files:** `features/resume/pages/home/ui/home.{ts,html}`,
-  `pages/home/constants/home.constants.ts`, `pages/home/components/**`,
-  `components/**`
+  `pages/home/components/**`, `components/**`
 - **Reach:** the empty path with `pathMatch: 'full'`, declared directly above the
   dashboard shell route. Renders **without** the dashboard shell.
-- **Shows:**
-  - Profile header: circularly cropped photo (`/jg-profile.png`), name,
-    `lucideMapPin` + location, two theme-aware plum role tags, GitHub and CV
-    actions, and the top-right **View dashboard** + theme toggle pair. The
-    profile name, location, and GitHub URL are hardcoded; the CV action currently
-    points to `#`.
-  - Centered, width-capped page container with increased padding and column
-    gutters at desktop sizes.
-  - Two-column responsive grid built from `SIDE_BLOCK_CONTENT` and
-    `MAIN_BLOCK_CONTENT`: About, Timeline, Certifications, Recent Projects, and
-    Technical Stack. The résumé Maintenance component is retained but not
-    currently rendered.
-  - Footer with the current year and a red `DEV` marker when
-    `environment.title` is non-empty (development builds only).
-- **Data:** About and Certifications are static; certification labels use
-  the same theme-aware plum tag styling as the profile roles. Timeline loads
+- **Shows:** a linear public résumé layout inside a `max-w-6xl` container:
+  - `ResumeHeader` with the name, fragment links (About, Experience, Tech
+    stack, Work, Contact), theme toggle, and **View dashboard**.
+  - Hero: a centered two-column layout from `md` up — the circularly cropped
+    photo (`/jg-profile.png`) alone in the first column, and the name headline,
+    **View projects**, **Download CV**, and a GitHub icon action in the second.
+    On smaller screens it stacks into a centered single column, with text
+    left-aligned at `md`. Role, location, and bio are omitted here because the
+    About section already reports them; the hero is identity, photo, and
+    actions only. Photo, GitHub URL, CV URL, and name come from `site`.
+  - About is a standalone terminal-styled section (`section#about`) with a
+    `~/about` title bar, a JG ASCII mark, a `cat bio.txt` narrative, and a
+    profile fact list.
+  - The remaining section panels use `ResumeSection`: Experience (responsive
+    timeline), Certifications (HackerRank labels), Tech stack (category grid with
+    derived marks), and Recent projects (three repository cards). About and
+    Contact are plain sections. Fragment jumps stop 16px below the viewport top
+    (a `ViewportScroller` offset set in `app.config.ts`).
+  - Closing Contact panel with a **Send email** primary CTA (`mailto:` from
+    `site.links.email`), then **Download CV**, **View GitHub**, and **View
+    dashboard** as secondary actions.
+  - Footer with the current year, name, GitHub link, back-to-top link, and a red
+    `DEV` marker when `environment.title` is non-empty (development builds only).
+- **Data:** About and Certifications are static. Timeline loads
   `ExperienceTimeline[]` from `v1/experience?includeProjects=false`, sorts
   valid start dates newest first (invalid dates after valid ones), and displays
-  at most three entries in a fixed-height vertical list. Entries show company,
-  role, and type; the year uses a subtle filled `accent-brand` tag and is hidden
-  for invalid dates.
-  Technical Stack loads `TechStackItem[]` from
-  `v1/skill` and groups skills by their API category. Its scrollable content
-  area is the same fixed height as Recent Projects. Recent Projects loads the
-  first two public repositories from
+  at most three entries. Entries show period, role, company, type, and
+  responsibility (falling back to description); invalid dates omit the period.
+  Tech stack loads `TechStackItem[]` from `v1/skill` and renders all published
+  categories in a fixed master order (`Frontend → Backend → Database → Cloud &
+  Infrastructure → Language → AI Tool`). The collapsed view shows the first
+  three; **View more / Show less** (shown only when something is truncated)
+  reveals the full grid and removes the four-row cap. Recent projects
+  loads the first three public repositories from
   `v1/github/owner/{username}/repositories`.
 - **Title:** `Jonathan Golimlim | Software Engineer`.
-- **Interactions:** _View more_ inside Recent Projects uses a theme-aware
-  `accent-brand` link with a subtle accent hover and normal `/projects`
-  navigation, reloading the application and project data on each click; **View
-  dashboard** navigates to `/dashboard`; the theme toggle uses the shared
-  `ThemeService`.
-- Technical Stack has no View more link until a destination is defined; the
-  full skill list is available by scrolling within its content area.
-- **Data states:** Timeline, Technical Stack, and Recent Projects each show
-  loading, empty, and retryable error states for their API requests.
+- **Interactions:** **View projects** and **View more** navigate to `/projects`;
+  **View dashboard** navigates to `/dashboard`; header fragment links scroll to
+  section anchors; the theme toggle uses the shared `ThemeService`.
+- **Data states:** Timeline, Tech stack, and Recent projects each show loading,
+  empty, and retryable error states for their API requests. Recent projects
+  renders **View more** only after its data loads.
 
 ---
 
 ## 6. Projects — `/projects`
 
 - **Files:** `features/resume/pages/projects/ui/projects.{ts,html}`,
-  `pages/projects/components/highlights.ts`, `features/resume/projects/project.service.ts`
+  `pages/projects/components/project-card/`,
+  `features/resume/projects/project.service.ts`
 - **Reach:** top-level `projects` route, above the shell.
-- **Shows:** a back button (`/`), a **Projects** pill, the **View dashboard**
-  link and the public theme toggle at the right,
-  a **Client Projects** block built from the API, and
-  a **Github Repos** block listing public repositories.
+- **Shows:** the public `ResumeHeader`, then a `max-w-6xl` main with a **Back to
+  profile** link, a **Selected work** eyebrow, the **Projects** heading, and a
+  short description. Two `ResumeSection` panels follow:
+  - **Client projects** — responsive three-column cards at `lg` (two at `sm`),
+    built from the API; the skeleton uses the same three-column layout. Each
+    card shows its index, title, contribution (or description), and any
+    technology tags returned. Cards are non-interactive because the API has no
+    project URL.
+  - **GitHub repositories** — the shared `RepoGrid` with the full public
+    repository list, identical cards to the landing-page preview.
+    The page ends with `ResumeFooter`.
 - **Data:** `GithubRepoSignalService` →
   `ApiClient.get('v1/github/owner/{username}/repositories')`;
   `ResumeProjectSignalService` → `ApiClient.get('v1/project?includeTools=false')`.
 - The GitHub repository block shows the full result here; the home page shows
-  the first two returned repositories as its Recent Projects preview.
+  the first three returned repositories as its Recent Projects preview.
 - **States:**
-  - Loading — spinner in the Client Projects and GitHub block headers.
+  - Loading — card skeletons in each section.
   - Empty — separate messages for client projects and GitHub repositories.
-  - Error — client projects show a `role="alert"` message with **Try again**;
-    GitHub repositories show an independent `role="alert"` message.
+  - Error — each section shows a `role="alert"` message with **Try again**.
 - **Note:** the list uses the same owner/repositories route as the dashboard's
   GitHub count, without the `/count` suffix.
 

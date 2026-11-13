@@ -1,22 +1,10 @@
-export interface TechStackCategory {
-  stackId: number;
-  stackName: string;
-  createdAt: string;
-}
-
-export interface TechStack {
-  specId: number;
-  toolName: string;
-  imgSrc: string;
-  createdAt: string;
-  stackId: number;
-  stack: string;
-}
-
+/**
+ * A skill returned by `v1/skill` and the technology entries embedded in a
+ * project. The API returns a nullable image path and no timestamps.
+ */
 export interface TechStackItem {
   id: number;
-  category: string;
-  createdAt: string;
-  imgSrc: string;
   stackName: string;
+  imgSrc: string | null;
+  category: string;
 }

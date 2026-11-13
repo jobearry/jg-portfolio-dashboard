@@ -43,7 +43,7 @@ src/main.ts
 providers: [
   provideBrowserGlobalErrorListeners(),
   provideHttpClient(withFetch()),
-  provideRouter(routes),
+  provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
   provideAppInitializer(() => {
     inject(ThemeService);
   }),
@@ -51,6 +51,11 @@ providers: [
 ```
 
 - `HttpClient` is registered app-wide, so `ApiClient` resolves on every route.
+- Router anchor scrolling is enabled for the résumé's section links, with a 16px
+  top offset registered through `ViewportScroller.setOffset` in the app
+  initializer (the router computes anchor positions itself, so CSS
+  `scroll-margin` has no effect). `styles.css` adds `scroll-behavior: smooth` on
+  `html` under `prefers-reduced-motion: no-preference`.
 - The theme initializer applies the stored/system theme and keeps it on `<html>`.
 - No zone/change-detection configuration.
 - No global state, interceptors, retries, or guards.
@@ -146,58 +151,85 @@ global theme, site configuration, and API client.
 
 #### Landing page — `/`
 
-`pages/home/ui/home.ts` and `home.html` assemble the profile header, footer, and
-five content blocks. `pages/home/constants/home.constants.ts` places About,
-Timeline, and Certifications in the side column and Recent Projects and
-Technical Stack in the main column. `BlockComponent` renders each titled block;
-`DynamicHostComponent` creates its configured standalone content component.
+`pages/home/ui/home.ts` and `home.html` compose a linear layout:
+`ResumeHeader` → a `max-w-6xl` main containing the hero, a terminal-styled About
+section, and four `ResumeSection` panels (Experience, Certifications, Tech
+stack, Recent projects) → the contact panel → `ResumeFooter`. Each
+`ResumeSection` receives a section `id` for fragment navigation; About owns its
+own `section#about`. The former block-content constants, dynamic host, and
+profile component were removed from this page.
 
-- **Profile:** `pages/home/components/profile/` renders the photo, name,
-  location, role labels, social/CV actions, dashboard link, and theme toggle.
-  The photo comes from `site.assets.profileAvatar`. The other profile text and
-  links are currently hardcoded; the CV action currently points to `#` (see
-  `.github/docs/gaps.md`).
-- **Static content:** About and Certifications are local components. Profile
-  role labels and certification labels use the `brand` variant in
-  `components/pill.ts`; it produces the theme-aware plum tag.
+- **Header:** `components/resume-header/` provides the top bar with the
+  name, fragment navigation (`about`, `experience`, `tech-stack`, `work`,
+  `contact`), theme toggle, and **View dashboard** link. Anchor navigation is
+  handled in the app shell configuration.
+- **Hero:** `pages/home/components/hero/hero.ts` uses `site.profile.name`,
+  `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`. It
+  renders a centered two-column layout at `md` and up (avatar alone in the first
+  column; the name `h1`, **View projects** (`/projects`), **Download CV**, and a
+  GitHub action in the second), stacking into a centered single column on smaller
+  screens. Role, location, and bio are intentionally omitted here because the
+  About section already reports them; the hero keeps only the identity, the
+  photo, and the primary actions.
+- **Static content:** `pages/home/components/about.ts` is a standalone
+  `section#about` styled as a fastfetch terminal — a `~/about` heading in the
+  title bar, a JG ASCII mark, a `cat bio.txt` narrative, and a profile fact list
+  (role, focus, stack, workflow, learning, location, handle); `certifications/`
+  lists the
+  HackerRank certifications. Labels use the `brand` variant in
+  `components/pill.ts`.
 - **Timeline:** `pages/home/components/timeline/` uses the shared
   `ExperienceSignalService` and requests
   `v1/experience?includeProjects=false`. It sorts valid start dates newest
   first, places invalid dates after valid ones, and displays at most three
-  entries. Each entry shows company, role, and type; its filled accent year tag
-  is omitted for an invalid start date. Loading, empty, and retryable error
-  states are shown.
+  entries as a responsive horizontal/vertical timeline. Each entry shows the
+  period, role, company, type, and responsibility (falling back to
+  description); the period is omitted for an invalid start date. Loading,
+  empty, and retryable error states are shown.
 - **Recent Projects:** `pages/home/components/recent-repositories/` uses
-  `GithubRepoSignalService` and shows the first two public repositories.
-  Repository cards open GitHub in a new tab; loading, empty, and retryable
-  error states are supported. **View more** is a full-page `/projects` link
-  using the theme-aware accent and subtle accent hover.
+  `GithubRepoSignalService` and shows the first three public repositories through
+  the shared `components/repo-grid/` and `components/repo-card/`. Cards open
+  GitHub in a new tab; loading, empty, and retryable error states are
+  supported. **View more** links to `/projects`.
 - **Technical Stack:** `pages/home/components/tech-stack-list/` uses the shared
-  `SkillsSignalService` and `v1/skill`, groups skills by API category, and
-  displays them in a fixed-height scroll area with loading, empty, and retryable
-  error states.
+  `SkillsSignalService` and `v1/skill`, renders skills as a responsive hairline
+  grid in the fixed master order `Frontend → Backend → Database → Cloud &
+  Infrastructure → Language → AI Tool`, and derives a two-letter mark per skill.
+  Collapsed view shows the first three categories, each capped at four skill
+  rows with internal scroll (48px rows, a 1rem mask fade, `tabindex=0` for
+  keyboard access); **View more / Show less** expands to the full grid with no
+  caps, and appears whenever more categories are published than the three the
+  collapsed view shows, or a card overflows four rows. Loading, empty, and
+  retryable error states are shown.
+- **Contact:** `pages/home/components/contact/contact.ts` closes the page with a
+  **Send email** primary CTA (`mailto:site.links.email`), plus CV, GitHub, and
+  dashboard actions.
 
 #### Projects page — `/projects`
 
-`pages/projects/ui/projects.ts` starts the client-project and GitHub repository
-requests in parallel:
+`pages/projects/ui/projects.ts` renders `ResumeHeader`, a page intro with a
+**Back to profile** link, two `ResumeSection` panels, and `ResumeFooter`.
+It starts the client-project and GitHub repository requests in parallel:
 
 - `ResumeProjectSignalService` calls `v1/project?includeTools=false`. The page
-  maps each API project to a highlight, using contribution text or falling back
-  to its description and listing technology names as tags.
+  maps each API project to a `ProjectCard` in a responsive two-column grid,
+  using contribution text or falling back to its description. Because the query
+  omits tools, project technology tags are normally empty; any `techStacks`
+  returned are still mapped and rendered.
 - `GithubRepoSignalService` calls
-  `v1/github/owner/{site.github.username}/repositories`; this page shows the
-  full list, while the landing page uses only the first two. Repository links
-  open in a new tab.
+  `v1/github/owner/{site.github.username}/repositories`; the shared `RepoGrid`
+  shows the full list, while the landing page uses only the first three.
+  Repository links open in a new tab.
 - Client projects have loading, empty, and retryable error states. GitHub
-  repositories have loading, empty, and error states.
+  repositories have loading, empty, and retryable error states through
+  `RepoGrid`.
 
-The page also provides a same-tab **Go back** action to `/`, plus shared
-dashboard and theme controls. The `components/` directory supplies reusable
-cards, pills, spinner, footer, dashboard link, and theme toggle; `Maintenance`
-is retained but unrouted. `core/models/github-repo.ts` defines the repository
-response, and `shared/constants/styles.constants.ts` holds the shared résumé
-transition utility.
+`pages/projects/components/project-card/` is presentational and
+non-interactive because the API exposes no project URL. The shared
+`components/` directory supplies pills, footer (`resume-footer`), header
+(`resume-header`), section panel (`resume-section`), dashboard link, theme
+toggle, and the repository card/grid; `Maintenance` is retained but unrouted.
+`core/models/github-repo.ts` defines the repository response.
 
 ## 5. Data layer
 
@@ -205,18 +237,18 @@ transition utility.
 
 Single typed source of truth for personal content and public integrations:
 
-- `site.profile` — name, handle, role, bio.
-- `site.links` — GitHub and CV URLs.
+- `site.profile` — name, handle, role, bio, location.
+- `site.links` — GitHub and CV URLs, plus the public email (`golimlim2209@gmail.com`).
 - `site.assets` — sidebar and profile avatar filenames (served from `public/`).
 - `site.notion` — page ID and public domain.
 - `site.github` — GitHub username used by the repository list and count endpoints.
 
 The object is `as const satisfies SiteConfig`. Consumers include route titles,
 dashboard shell/user menu/overview and its parked Profile page, Blog, and the
-résumé GitHub repository service. On the public résumé landing page, only the
-profile avatar currently comes from `site`; its other profile values and links
-remain hardcoded (see `.github/docs/gaps.md`). Menu labels/URLs/icons stay in
-`core/constants/sidebar-sections.ts`.
+résumé GitHub repository service. The résumé hero reads its name, avatar, GitHub
+link, and CV link from `site`; the About section reads the role, location, and
+handle. Remaining hardcoded copy is listed in `.github/docs/gaps.md`. Menu
+labels/URLs/icons stay in `core/constants/sidebar-sections.ts`.
 
 ### `ApiClient` — `src/app/core/api/api-client.ts`
 
@@ -285,7 +317,7 @@ details. The former dashboard profile page is parked and unrouted; its
 Stack section uses `v1/skill`.
 
 `GithubRepoSignalService` uses the owner/repositories endpoint without the
-`/count` suffix. The résumé home page displays its first two results; `/projects`
+`/count` suffix. The résumé home page displays its first three results; `/projects`
 displays the full list. The GitHub token deliberately lives on the API: the
 imported `web_resume` shipped it in the browser bundle; the résumé import
 removed it.
@@ -298,13 +330,10 @@ removed it.
   uppercase with camelCase/underscore word breaks and a matching local subtitle
   (key-derived fallback for unknown values). The same model types the GitHub and
   Notion count responses.
-- `ExperienceTimeline { id, company: Company, duration: Period, description, role: Role, responsibility, type, projects?: Project[] | null }`
-- `Project { projectId, projectName, description, coverImg, duration, contribution, techStackSpecs: TechStack[] }`
-- `TechStack { specId, toolName, imgSrc, createdAt, stackId, stack }`
-- `TechStackItem { id, category, createdAt, imgSrc, stackName }`
-- `FeedbackItem { id, personName, description, careerPosition: Role, postedAt }`
-- Value objects: `Company { name }`, `Period { startedAt, finishedAt, duration }`,
-  `Role { value }`
+- `ExperienceTimeline { id, company, role, startedAt, finishedAt, durationMonths, description, responsibility, type, projects?: Project[] | null }`
+- `Project { id, projectName, description, contribution, techStacks?: TechStackItem[] | null }`
+- `TechStackItem { id, stackName, imgSrc: string | null, category }`
+- `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
 
 `src/app/features/resume/core/models/`:
@@ -315,7 +344,7 @@ removed it.
 
 The résumé Projects page uses the dashboard `Project` model from
 `v1/project?includeTools=true`; the résumé home's Recent Projects preview uses
-the first two results from the GitHub repository list.
+the first three results from the GitHub repository list.
 
 The unused `PortfolioItems` and `Result<T>` models were deleted in 008.
 

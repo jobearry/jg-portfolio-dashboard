@@ -7,48 +7,65 @@ import {
 } from '../../../../../../shared';
 import { ExperienceTimeline } from '../../../../../dashboard/core';
 
+interface ExperienceView {
+  id: number;
+  period: string;
+  role: string;
+  company: string;
+  type: string;
+  detail: string;
+}
+
 @Component({
   selector: 'app-timeline',
   imports: [Skeleton, StateMessage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="m-2">
-      @if (state().loading) {
-        <app-skeleton variant="list" [rows]="3" />
-      } @else if (state().error) {
-        <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
-      } @else if (state().content.length === 0) {
-        <app-state-message kind="empty" message="No experience has been published yet." />
-      } @else {
-        <ol
-          class="relative h-60 overflow-y-scroll scroll-smooth [scrollbar-width:thin] [scrollbar-color:#888_transparent]"
-        >
-          @for (experience of orderedExperiences(); track experience.id) {
-            <li class="group relative mb-8 ml-15 pl-5">
-              @if (year(experience.startedAt); as startYear) {
-                <h3
-                  class="absolute top-0 -left-12 rounded-full border border-accent-brand/30 bg-accent-brand/10 px-2 py-1 text-xs font-medium text-accent-brand tabular-nums transition-colors"
-                >
-                  {{ startYear }}
-                </h3>
+    @if (state().loading) {
+      <app-skeleton variant="card" [rows]="3" />
+    } @else if (state().error) {
+      <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
+    } @else if (state().content.length === 0) {
+      <app-state-message kind="empty" message="No experience has been published yet." />
+    } @else {
+      <ol class="grid gap-0 md:grid-cols-3 md:gap-x-7">
+        @for (experience of experiences(); track experience.id) {
+          <li
+            class="relative border-l border-border pb-8 pl-6 last:pb-0 md:border-t md:border-r md:border-l-0 md:pt-7 md:pr-7 md:pb-0 md:pl-0 md:last:border-r-0"
+          >
+            <span
+              class="absolute top-1 -left-1 size-2.5 rounded-full border-2 border-accent-brand bg-card md:-top-1.5 md:left-0"
+              aria-hidden="true"
+            ></span>
+
+            @if (experience.period) {
+              <p class="font-mono text-xs text-accent-brand tabular-nums">
+                {{ experience.period }}
+              </p>
+            }
+
+            <h3 class="mt-3 text-sm font-semibold text-foreground">{{ experience.role }}</h3>
+            <p class="mt-1 text-xs text-muted-foreground">
+              {{ experience.company }}
+              @if (experience.type) {
+                <span> · {{ experience.type }}</span>
               }
-              <div class="mr-5 cursor-pointer rounded text-start">
-                <p class="text-sm font-bold">{{ experience.company }}</p>
-                <p class="text-xs text-muted-foreground">
-                  {{ experience.role }} | {{ experience.type }}
-                </p>
-              </div>
-            </li>
-          }
-        </ol>
-      }
-    </div>
+            </p>
+
+            @if (experience.detail) {
+              <p class="mt-4 text-xs leading-6 text-muted-foreground">{{ experience.detail }}</p>
+            }
+          </li>
+        }
+      </ol>
+    }
   `,
 })
 export class Timeline implements OnInit {
   private readonly experienceService = inject(ExperienceSignalService);
+
   protected readonly state = computed(() => this.experienceService.getState());
-  protected readonly orderedExperiences = computed(() =>
+  protected readonly experiences = computed<ExperienceView[]>(() =>
     [...this.state().content]
       .sort((left, right) => {
         const leftTime = Date.parse(left.startedAt);
@@ -68,7 +85,15 @@ export class Timeline implements OnInit {
 
         return rightTime - leftTime;
       })
-      .slice(0, 3),
+      .slice(0, 3)
+      .map((experience) => ({
+        id: experience.id,
+        period: formatPeriod(experience.startedAt, experience.finishedAt),
+        role: experience.role,
+        company: experience.company,
+        type: experience.type,
+        detail: experience.responsibility || experience.description,
+      })),
   );
 
   ngOnInit(): void {
@@ -81,13 +106,23 @@ export class Timeline implements OnInit {
       this.experienceService,
     );
   }
+}
 
-  protected year(value: string): string | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : String(date.getFullYear());
+function formatPeriod(startedAt: string, finishedAt?: string | null): string {
+  const start = parseYear(startedAt);
+  if (!start) {
+    return '';
   }
+
+  const end = parseYear(finishedAt);
+  return `${start} — ${end ?? 'Present'}`;
+}
+
+function parseYear(value?: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : String(date.getFullYear());
 }

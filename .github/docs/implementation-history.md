@@ -51,3 +51,6 @@ this list is historical, not an open-work queue. Use
 | 038 | Releasing mobile scroll lock on profile navigation            |
 | 039 | Résumé shell spacing                                          |
 | 040 | Hiding the résumé maintenance placeholder                     |
+| 041 | Résumé redesign: public shell and landing page                |
+| 042 | Résumé redesign: projects page                                |
+| 043 | Redesign QA, API model alignment, and cleanup                 |

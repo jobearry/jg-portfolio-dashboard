@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLightbulb } from '@ng-icons/lucide';
+import { lucideMoon, lucideSun } from '@ng-icons/lucide';
 import { ThemeService } from '../../../core/theme/theme.service';
 
 /**
@@ -11,52 +11,31 @@ import { ThemeService } from '../../../core/theme/theme.service';
 @Component({
   selector: 'app-theme-toggler',
   imports: [NgIcon],
-  providers: [provideIcons({ lucideLightbulb })],
+  providers: [provideIcons({ lucideMoon, lucideSun })],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'inline-flex' },
   template: `
-    <button type="button" aria-label="Toggle theme" class="theme-toggle" (click)="toggle()">
-      <ng-icon name="lucideLightbulb" size="18" class="bulb" />
+    <button
+      type="button"
+      [attr.aria-label]="label()"
+      class="inline-flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+      (click)="toggle()"
+    >
+      <ng-icon
+        [name]="theme() === 'dark' ? 'lucideSun' : 'lucideMoon'"
+        size="18"
+        aria-hidden="true"
+      />
     </button>
-  `,
-  styles: `
-    :host {
-      display: inline-block;
-    }
-
-    .theme-toggle {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px;
-      border-radius: 8px;
-      background: transparent;
-      border: 1px solid transparent;
-      cursor: pointer;
-    }
-
-    .bulb {
-      display: block;
-      color: #b58900;
-      transform: scale(1.05);
-      transition:
-        color 0.25s ease,
-        transform 0.18s ease;
-    }
-
-    :host-context(.dark) .bulb {
-      color: var(--foreground);
-      transform: scale(1);
-    }
-
-    .theme-toggle:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
   `,
 })
 export class ThemeToggler {
   private readonly themeService = inject(ThemeService);
+
+  protected readonly theme = this.themeService.theme;
+  protected readonly label = computed(() =>
+    this.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+  );
 
   toggle(): void {
     this.themeService.toggle();

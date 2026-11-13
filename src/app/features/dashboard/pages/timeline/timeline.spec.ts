@@ -73,22 +73,11 @@ describe('Timeline', () => {
         ...base,
         projects: [
           {
-            projectId: 9,
+            id: 9,
             projectName: 'Portal',
             description: 'Internal dashboard',
-            coverImg: '',
-            duration: 0,
             contribution: '',
-            techStackSpecs: [
-              {
-                specId: 1,
-                toolName: 'Angular',
-                imgSrc: '',
-                createdAt: '',
-                stackId: 1,
-                stack: 'Frontend',
-              },
-            ],
+            techStacks: [{ id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' }],
           },
         ],
       },

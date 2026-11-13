@@ -5,11 +5,13 @@ export interface ProfileConfig {
   readonly handle: string;
   readonly role: string;
   readonly bio: string;
+  readonly location: string;
 }
 
 export interface LinkConfig {
   readonly github: string;
   readonly cv: string;
+  readonly email: string;
 }
 
 export interface AssetConfig {
@@ -44,10 +46,12 @@ export const site = {
     handle: '@jthan',
     role: 'Software Engineer',
     bio: 'A full-stack software engineer who specializes on developing web applications through Angular and .NET',
+    location: 'Quezon City, Philippines',
   },
   links: {
     github: 'https://github.com/jobearry',
     cv: environment.cvURL,
+    email: 'golimlim2209@gmail.com',
   },
   assets: {
     sidebarAvatar: `${environment.imgDir}/grad_1.jpeg`,
