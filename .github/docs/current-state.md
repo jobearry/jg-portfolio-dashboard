@@ -160,10 +160,12 @@ and profile component were removed from this page.
   handled in the app shell configuration.
 - **Hero:** `pages/home/components/hero/hero.ts` uses `site.profile`,
   `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`. It
-  renders the avatar, role eyebrow, a two-tone name headline, bio, location,
-  two role pills, **View projects** (`/projects`), **Download CV**, and a
-  GitHub action. Profile name, role, bio, location, avatar, and links come
-  from `site`; the second role pill and supporting copy are local.
+  renders a centered two-column layout at `md` and up (avatar alone in the first
+  column; role eyebrow, a name headline, location, **View projects**
+  (`/projects`), **Download CV**, and a GitHub action in the second), stacking
+  into a centered single column on smaller screens. The bio is intentionally
+  left to the About section. Profile name, role, location, avatar, and links come
+  from `site`.
 - **Static content:** `pages/home/components/about.ts` pairs the configured bio
   with supporting paragraphs; `certifications/` lists the HackerRank
   certifications. Labels use the `brand` variant in `components/pill.ts`.

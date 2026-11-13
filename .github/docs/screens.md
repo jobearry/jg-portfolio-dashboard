@@ -163,10 +163,13 @@ redirects to `/`.
 - **Shows:** a linear public résumé layout inside a `max-w-6xl` container:
   - `ResumeHeader` with the name, fragment links (About, Experience, Tech
     stack, Work, Contact), theme toggle, and **View dashboard**.
-  - Hero: circularly cropped photo (`/jg-profile.png`), uppercase role eyebrow,
-    two-tone name headline, bio, `lucideMapPin` + location, two plum role tags,
-    **View projects**, **Download CV**, and a GitHub icon action. Photo,
-    location, GitHub URL, CV URL, name, role, and bio all come from `site`.
+  - Hero: a centered two-column layout from `md` up — the circularly cropped
+    photo (`/jg-profile.png`) alone in the first column, and the uppercase role
+    eyebrow, name headline, `lucideMapPin` + location, **View projects**,
+    **Download CV**, and a GitHub icon action in the second. On smaller screens
+    it stacks into a centered single column, with text left-aligned at `md`. The
+    bio is omitted here because the About panel already covers it. Photo,
+    location, GitHub URL, CV URL, name, and role all come from `site`.
   - Section panels built with `ResumeSection` and scroll offsets: About
     (bio-led two-column copy), Experience (responsive timeline), Certifications
     (HackerRank labels), Tech stack (category grid with derived marks), and

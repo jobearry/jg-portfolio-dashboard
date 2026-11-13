@@ -32,11 +32,10 @@ Known issues in the current app after the Tailwind rewrite.
 ## Résumé landing content
 
 - Identity and links are configured: the hero reads `site.profile.name`,
-  `site.profile.role`, `site.profile.bio`, `site.profile.location`,
-  `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`.
-- Remaining landing copy is local to components: the second hero role pill
-  (“Fullstack Developer”), the About supporting paragraphs, and the
-  certification labels are hardcoded.
+  `site.profile.role`, `site.profile.location`, `site.assets.profileAvatar`,
+  `site.links.github`, and `site.links.cv`.
+- Remaining landing copy is local to components: the About supporting paragraphs
+  and the certification labels are hardcoded.
 - The contact panel has no email action because `site` exposes no public email;
   it links to the CV, GitHub, and dashboard instead.
 
