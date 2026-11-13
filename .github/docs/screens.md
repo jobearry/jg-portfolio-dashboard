@@ -214,7 +214,8 @@ redirects to `/`.
 - **Shows:** the public `ResumeHeader`, then a `max-w-6xl` main with a **Back to
   profile** link, a **Selected work** eyebrow, the **Projects** heading, and a
   short description. Two `ResumeSection` panels follow:
-  - **Client projects** — responsive two-column cards built from the API. Each
+  - **Client projects** — responsive three-column cards at `lg` (two at `sm`),
+    built from the API; the skeleton uses the same three-column layout. Each
     card shows its index, title, contribution (or description), and any
     technology tags returned. Cards are non-interactive because the API has no
     project URL.

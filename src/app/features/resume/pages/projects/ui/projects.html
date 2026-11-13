@@ -31,7 +31,7 @@
     <ng-icon section-icon name="lucideBriefcase" size="20" aria-hidden="true" />
 
     @if (projectState().loading) {
-      <app-skeleton variant="card" [rows]="2" />
+      <app-skeleton variant="card" [rows]="3" />
     } @else if (projectState().error) {
       <app-state-message
         kind="error"
@@ -41,7 +41,7 @@
     } @else if (clientProjects().length === 0) {
       <app-state-message kind="empty" message="No client projects to show yet." />
     } @else {
-      <ul class="grid gap-3 md:grid-cols-2">
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         @for (project of clientProjects(); track project.id; let index = $index) {
           <li>
             <app-project-card [project]="project" [index]="label(index)" />
