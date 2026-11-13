@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowRight, lucideFileDown, lucideGithub, lucideMapPin } from '@ng-icons/lucide';
+import { lucideArrowRight, lucideFileDown, lucideGithub } from '@ng-icons/lucide';
 import { site } from '../../../../../../core/config/site.config';
 
 /**
@@ -10,7 +10,7 @@ import { site } from '../../../../../../core/config/site.config';
 @Component({
   selector: 'app-hero',
   imports: [RouterLink, NgIcon],
-  providers: [provideIcons({ lucideArrowRight, lucideFileDown, lucideGithub, lucideMapPin })],
+  providers: [provideIcons({ lucideArrowRight, lucideFileDown, lucideGithub })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -28,23 +28,14 @@ import { site } from '../../../../../../core/config/site.config';
       </figure>
 
       <div class="flex min-w-0 flex-col items-center md:items-start">
-        <p class="text-xs font-bold tracking-[0.16em] text-accent-brand uppercase">
-          {{ profile.role }}
-        </p>
-
         <h1
           id="hero-heading"
-          class="mt-4 max-w-3xl text-4xl font-semibold tracking-tighter text-foreground sm:text-6xl lg:text-7xl"
+          class="max-w-3xl text-4xl font-semibold tracking-tighter text-foreground sm:text-6xl lg:text-7xl"
         >
           {{ profile.name }}
         </h1>
 
-        <p class="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-          <ng-icon name="lucideMapPin" size="15" aria-hidden="true" />
-          <span>{{ profile.location }}</span>
-        </p>
-
-        <div class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+        <div class="mt-7 flex flex-wrap items-center justify-center gap-1.5 sm:mt-8 sm:gap-2">
           <a
             routerLink="/projects"
             class="inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-accent-brand px-2.5 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-brand/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:px-4"

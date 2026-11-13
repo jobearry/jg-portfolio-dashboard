@@ -4,6 +4,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import { ViewportScroller } from '@angular/common';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
@@ -17,6 +18,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
     provideAppInitializer(() => {
       inject(ThemeService);
+      // The router positions fragment targets itself, so `scroll-margin` on the
+      // sections has no effect; a small scroll offset keeps jumps off the edge.
+      inject(ViewportScroller).setOffset([0, 16]);
     }),
   ],
 };

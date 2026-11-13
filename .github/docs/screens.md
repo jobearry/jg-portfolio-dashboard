@@ -164,16 +164,20 @@ redirects to `/`.
   - `ResumeHeader` with the name, fragment links (About, Experience, Tech
     stack, Work, Contact), theme toggle, and **View dashboard**.
   - Hero: a centered two-column layout from `md` up — the circularly cropped
-    photo (`/jg-profile.png`) alone in the first column, and the uppercase role
-    eyebrow, name headline, `lucideMapPin` + location, **View projects**,
-    **Download CV**, and a GitHub icon action in the second. On smaller screens
-    it stacks into a centered single column, with text left-aligned at `md`. The
-    bio is omitted here because the About panel already covers it. Photo,
-    location, GitHub URL, CV URL, name, and role all come from `site`.
-  - Section panels built with `ResumeSection` and scroll offsets: About
-    (bio-led two-column copy), Experience (responsive timeline), Certifications
-    (HackerRank labels), Tech stack (category grid with derived marks), and
-    Recent projects (two repository cards).
+    photo (`/jg-profile.png`) alone in the first column, and the name headline,
+    **View projects**, **Download CV**, and a GitHub icon action in the second.
+    On smaller screens it stacks into a centered single column, with text
+    left-aligned at `md`. Role, location, and bio are omitted here because the
+    About section already reports them; the hero is identity, photo, and
+    actions only. Photo, GitHub URL, CV URL, and name come from `site`.
+  - About is a standalone terminal-styled section (`section#about`) with a
+    `~/about` title bar, a JG ASCII mark, a `cat bio.txt` narrative, and a
+    profile fact list.
+  - The remaining section panels use `ResumeSection`: Experience (responsive
+    timeline), Certifications (HackerRank labels), Tech stack (category grid with
+    derived marks), and Recent projects (two repository cards). About and
+    Contact are plain sections. Fragment jumps stop 16px below the viewport top
+    (a `ViewportScroller` offset set in `app.config.ts`).
   - Closing Contact panel with **Download CV**, **View GitHub**, and **View
     dashboard** actions. No email is shown because `site` has no public email.
   - Footer with the current year, name, GitHub link, back-to-top link, and a red

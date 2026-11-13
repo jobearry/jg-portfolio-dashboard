@@ -14,7 +14,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
     <section
       [id]="sectionId()"
       [attr.aria-labelledby]="headingId()"
-      class="scroll-mt-24 rounded-lg border border-border bg-card p-5 text-card-foreground sm:p-6"
+      class="rounded-lg border border-border bg-card p-5 text-card-foreground sm:p-6"
     >
       <div class="mb-6 flex items-center gap-3">
         <span class="flex shrink-0 text-muted-foreground" aria-hidden="true">

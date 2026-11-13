@@ -25,7 +25,7 @@ import { site } from '../../../../../../core/config/site.config';
     <section
       id="contact"
       aria-labelledby="contact-heading"
-      class="scroll-mt-24 rounded-lg border border-border bg-card px-5 py-16 text-center sm:px-6 sm:py-20"
+      class="rounded-lg border border-border bg-card px-5 py-16 text-center sm:px-6 sm:py-20"
     >
       <div
         class="mx-auto flex size-14 items-center justify-center rounded-full border border-border text-accent-brand"

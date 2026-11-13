@@ -1,12 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideAward,
-  lucideBriefcase,
-  lucideCode,
-  lucideGrid,
-  lucideIdCard,
-} from '@ng-icons/lucide';
+import { lucideAward, lucideBriefcase, lucideCode, lucideGrid } from '@ng-icons/lucide';
 import { ResumeFooter } from '../../../components/resume-footer/resume-footer';
 import { ResumeHeader } from '../../../components/resume-header/resume-header';
 import { ResumeSection } from '../../../components/resume-section/resume-section';
@@ -33,7 +27,7 @@ import { Timeline } from '../components/timeline/timeline';
     RecentRepositories,
     Contact,
   ],
-  providers: [provideIcons({ lucideAward, lucideBriefcase, lucideCode, lucideGrid, lucideIdCard })],
+  providers: [provideIcons({ lucideAward, lucideBriefcase, lucideCode, lucideGrid })],
   templateUrl: './home.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

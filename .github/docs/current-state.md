@@ -51,7 +51,11 @@ providers: [
 ```
 
 - `HttpClient` is registered app-wide, so `ApiClient` resolves on every route.
-- Router anchor scrolling is enabled for the résumé's section links.
+- Router anchor scrolling is enabled for the résumé's section links, with a 16px
+  top offset registered through `ViewportScroller.setOffset` in the app
+  initializer (the router computes anchor positions itself, so CSS
+  `scroll-margin` has no effect). `styles.css` adds `scroll-behavior: smooth` on
+  `html` under `prefers-reduced-motion: no-preference`.
 - The theme initializer applies the stored/system theme and keeps it on `<html>`.
 - No zone/change-detection configuration.
 - No global state, interceptors, retries, or guards.
@@ -148,27 +152,32 @@ global theme, site configuration, and API client.
 #### Landing page — `/`
 
 `pages/home/ui/home.ts` and `home.html` compose a linear layout:
-`ResumeHeader` → a `max-w-6xl` main containing the hero and five
-`ResumeSection` panels (About, Experience, Certifications, Tech stack, Recent
-projects) → the contact panel → `ResumeFooter`. Each panel receives a section
-`id` for fragment navigation. The former block-content constants, dynamic host,
-and profile component were removed from this page.
+`ResumeHeader` → a `max-w-6xl` main containing the hero, a terminal-styled About
+section, and four `ResumeSection` panels (Experience, Certifications, Tech
+stack, Recent projects) → the contact panel → `ResumeFooter`. Each
+`ResumeSection` receives a section `id` for fragment navigation; About owns its
+own `section#about`. The former block-content constants, dynamic host, and
+profile component were removed from this page.
 
 - **Header:** `components/resume-header/` provides the top bar with the
   name, fragment navigation (`about`, `experience`, `tech-stack`, `work`,
   `contact`), theme toggle, and **View dashboard** link. Anchor navigation is
   handled in the app shell configuration.
-- **Hero:** `pages/home/components/hero/hero.ts` uses `site.profile`,
+- **Hero:** `pages/home/components/hero/hero.ts` uses `site.profile.name`,
   `site.assets.profileAvatar`, `site.links.github`, and `site.links.cv`. It
   renders a centered two-column layout at `md` and up (avatar alone in the first
-  column; role eyebrow, a name headline, location, **View projects**
-  (`/projects`), **Download CV**, and a GitHub action in the second), stacking
-  into a centered single column on smaller screens. The bio is intentionally
-  left to the About section. Profile name, role, location, avatar, and links come
-  from `site`.
-- **Static content:** `pages/home/components/about.ts` pairs the configured bio
-  with supporting paragraphs; `certifications/` lists the HackerRank
-  certifications. Labels use the `brand` variant in `components/pill.ts`.
+  column; the name `h1`, **View projects** (`/projects`), **Download CV**, and a
+  GitHub action in the second), stacking into a centered single column on smaller
+  screens. Role, location, and bio are intentionally omitted here because the
+  About section already reports them; the hero keeps only the identity, the
+  photo, and the primary actions.
+- **Static content:** `pages/home/components/about.ts` is a standalone
+  `section#about` styled as a fastfetch terminal — a `~/about` heading in the
+  title bar, a JG ASCII mark, a `cat bio.txt` narrative, and a profile fact list
+  (role, focus, stack, workflow, learning, location, handle); `certifications/`
+  lists the
+  HackerRank certifications. Labels use the `brand` variant in
+  `components/pill.ts`.
 - **Timeline:** `pages/home/components/timeline/` uses the shared
   `ExperienceSignalService` and requests
   `v1/experience?includeProjects=false`. It sorts valid start dates newest
@@ -230,10 +239,10 @@ Single typed source of truth for personal content and public integrations:
 
 The object is `as const satisfies SiteConfig`. Consumers include route titles,
 dashboard shell/user menu/overview and its parked Profile page, Blog, and the
-résumé GitHub repository service. The public résumé profile reads its avatar,
-location, GitHub link, and CV link from `site`; its name and role labels remain
-hardcoded (see `.github/docs/gaps.md`). Menu labels/URLs/icons stay in
-`core/constants/sidebar-sections.ts`.
+résumé GitHub repository service. The résumé hero reads its name, avatar, GitHub
+link, and CV link from `site`; the About section reads the role, location, and
+handle. Remaining hardcoded copy is listed in `.github/docs/gaps.md`. Menu
+labels/URLs/icons stay in `core/constants/sidebar-sections.ts`.
 
 ### `ApiClient` — `src/app/core/api/api-client.ts`
 
