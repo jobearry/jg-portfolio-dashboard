@@ -175,11 +175,12 @@ redirects to `/`.
     profile fact list.
   - The remaining section panels use `ResumeSection`: Experience (responsive
     timeline), Certifications (HackerRank labels), Tech stack (category grid with
-    derived marks), and Recent projects (two repository cards). About and
+    derived marks), and Recent projects (three repository cards). About and
     Contact are plain sections. Fragment jumps stop 16px below the viewport top
     (a `ViewportScroller` offset set in `app.config.ts`).
-  - Closing Contact panel with **Download CV**, **View GitHub**, and **View
-    dashboard** actions. No email is shown because `site` has no public email.
+  - Closing Contact panel with a **Send email** primary CTA (`mailto:` from
+    `site.links.email`), then **Download CV**, **View GitHub**, and **View
+    dashboard** as secondary actions.
   - Footer with the current year, name, GitHub link, back-to-top link, and a red
     `DEV` marker when `environment.title` is non-empty (development builds only).
 - **Data:** About and Certifications are static. Timeline loads
@@ -187,8 +188,12 @@ redirects to `/`.
   valid start dates newest first (invalid dates after valid ones), and displays
   at most three entries. Entries show period, role, company, type, and
   responsibility (falling back to description); invalid dates omit the period.
-  Tech stack loads `TechStackItem[]` from `v1/skill` and groups skills by API
-  category. Recent projects loads the first two public repositories from
+  Tech stack loads `TechStackItem[]` from `v1/skill` and renders all published
+  categories in a fixed master order (`Frontend → Backend → Database → Cloud &
+  Infrastructure → Language → AI Tool`). The collapsed view shows the first
+  three; **View more / Show less** (shown only when something is truncated)
+  reveals the full grid and removes the four-row cap. Recent projects
+  loads the first three public repositories from
   `v1/github/owner/{username}/repositories`.
 - **Title:** `Jonathan Golimlim | Software Engineer`.
 - **Interactions:** **View projects** and **View more** navigate to `/projects`;
@@ -220,7 +225,7 @@ redirects to `/`.
   `ApiClient.get('v1/github/owner/{username}/repositories')`;
   `ResumeProjectSignalService` → `ApiClient.get('v1/project?includeTools=false')`.
 - The GitHub repository block shows the full result here; the home page shows
-  the first two returned repositories as its Recent Projects preview.
+  the first three returned repositories as its Recent Projects preview.
 - **States:**
   - Loading — card skeletons in each section.
   - Empty — separate messages for client projects and GitHub repositories.

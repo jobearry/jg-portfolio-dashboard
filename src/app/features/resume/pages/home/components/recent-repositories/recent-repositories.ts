@@ -21,7 +21,7 @@ export class RecentRepositories implements OnInit {
   private readonly githubRepos = inject(GithubRepoSignalService);
 
   protected readonly state = computed(() => this.githubRepos.getState());
-  protected readonly repositories = computed(() => this.state().content.slice(0, 2));
+  protected readonly repositories = computed(() => this.state().content.slice(0, 3));
 
   ngOnInit(): void {
     void this.githubRepos.load();

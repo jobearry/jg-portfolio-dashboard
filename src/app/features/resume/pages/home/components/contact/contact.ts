@@ -2,22 +2,27 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowRight,
   lucideFileDown,
   lucideGithub,
   lucideLayoutDashboard,
+  lucideMail,
 } from '@ng-icons/lucide';
 import { site } from '../../../../../../core/config/site.config';
 
 /**
- * Closing call to action. There is no public email in the site config, so the
- * panel points at the CV, GitHub, and dashboard instead.
+ * Closing call to action. **Send email** is the primary CTA; CV, GitHub, and
+ * the dashboard are secondary. The address comes from `site.links.email`.
  */
 @Component({
   selector: 'app-contact',
   imports: [RouterLink, NgIcon],
   providers: [
-    provideIcons({ lucideArrowRight, lucideFileDown, lucideGithub, lucideLayoutDashboard }),
+    provideIcons({
+      lucideFileDown,
+      lucideGithub,
+      lucideLayoutDashboard,
+      lucideMail,
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -31,11 +36,11 @@ import { site } from '../../../../../../core/config/site.config';
         class="mx-auto flex size-14 items-center justify-center rounded-full border border-border text-accent-brand"
         aria-hidden="true"
       >
-        <ng-icon name="lucideArrowRight" size="24" />
+        <ng-icon name="lucideMail" size="24" />
       </div>
 
       <p class="mt-6 text-xs font-bold tracking-[0.16em] text-accent-brand uppercase">
-        Explore my work
+        Get in touch
       </p>
       <h2
         id="contact-heading"
@@ -44,17 +49,25 @@ import { site } from '../../../../../../core/config/site.config';
         Let’s build something useful.
       </h2>
       <p class="mx-auto mt-5 max-w-lg text-sm leading-7 text-muted-foreground">
-        Browse my client projects and public repositories, or download my CV for the full
-        background.
+        Browse my client projects and public repositories, or send me an email about
+        roles, projects, or collaborations.
       </p>
 
-      <div class="mt-8 flex flex-col items-center justify-center gap-2 sm:flex-row">
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-2">
+        <a
+          [href]="'mailto:' + email"
+          class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent-brand px-4 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-brand/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        >
+          <ng-icon name="lucideMail" size="16" aria-hidden="true" />
+          Send email
+        </a>
+
         @if (cvUrl) {
           <a
             [href]="cvUrl"
             download="cv-golimlim.pdf"
             rel="noopener noreferrer"
-            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent-brand px-4 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-brand/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-xs font-semibold text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
           >
             <ng-icon name="lucideFileDown" size="16" aria-hidden="true" />
             Download CV
@@ -83,6 +96,7 @@ import { site } from '../../../../../../core/config/site.config';
   `,
 })
 export class Contact {
+  protected readonly email = site.links.email;
   protected readonly cvUrl = site.links.cv;
   protected readonly githubUrl = site.links.github;
 }

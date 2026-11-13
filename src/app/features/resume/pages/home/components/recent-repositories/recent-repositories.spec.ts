@@ -40,16 +40,16 @@ describe('RecentRepositories', () => {
 
   afterEach(() => http.verify());
 
-  it('shows only the first two repositories returned by the API as cards', async () => {
+  it('shows only the first three repositories returned by the API as cards', async () => {
     const fixture = render();
-    request().flush([repository(1), repository(2), repository(3)]);
+    request().flush([repository(1), repository(2), repository(3), repository(4)]);
 
     await settle(fixture);
 
     const element = fixture.nativeElement as HTMLElement;
     expect(
       [...element.querySelectorAll('li h3')].map((heading) => heading.textContent?.trim()),
-    ).toEqual(['repo-1', 'repo-2']);
+    ).toEqual(['repo-1', 'repo-2', 'repo-3']);
     expect(element.textContent).toContain('Description 1');
     expect(element.textContent).toContain('TypeScript');
     expect(element.textContent).toContain('angular');

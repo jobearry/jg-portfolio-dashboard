@@ -38,8 +38,9 @@ Known issues in the current app after the Tailwind rewrite.
 - Remaining landing copy is local to components: the About fastfetch section,
   including its `cat bio.txt` narrative and facts, and the certification labels
   are hardcoded.
-- The contact panel has no email action because `site` exposes no public email;
-  it links to the CV, GitHub, and dashboard instead.
+- The contact panel publishes the résumé email from `site.links.email` with a
+  primary **Send email** (`mailto:`) CTA and keeps the CV, GitHub, and dashboard
+  as secondary actions.
 
 ## Resolved in 006 (shell)
 
@@ -135,7 +136,7 @@ Known issues in the current app after the Tailwind rewrite.
   route with `/count`.
 - The resume Projects page reads client projects from
   `v1/project?includeTools=false`; the home page's Recent Projects preview is
-  limited to the first two repositories returned by the GitHub list endpoint.
+  limited to the first three repositories returned by the GitHub list endpoint.
 
 ## Resume import (020)
 

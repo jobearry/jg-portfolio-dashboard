@@ -187,17 +187,23 @@ profile component were removed from this page.
   description); the period is omitted for an invalid start date. Loading,
   empty, and retryable error states are shown.
 - **Recent Projects:** `pages/home/components/recent-repositories/` uses
-  `GithubRepoSignalService` and shows the first two public repositories through
+  `GithubRepoSignalService` and shows the first three public repositories through
   the shared `components/repo-grid/` and `components/repo-card/`. Cards open
   GitHub in a new tab; loading, empty, and retryable error states are
   supported. **View more** links to `/projects`.
 - **Technical Stack:** `pages/home/components/tech-stack-list/` uses the shared
-  `SkillsSignalService` and `v1/skill`, groups skills by API category into a
-  responsive grid, and derives a two-letter mark per skill. Loading, empty, and
-  retryable error states are shown; there is no fixed-height scroll area.
-- **Contact:** `pages/home/components/contact/contact.ts` closes the page with
-  CV, GitHub, and dashboard actions. There is no public email in `site`, so no
-  email affordance is rendered.
+  `SkillsSignalService` and `v1/skill`, renders skills as a responsive hairline
+  grid in the fixed master order `Frontend → Backend → Database → Cloud &
+  Infrastructure → Language → AI Tool`, and derives a two-letter mark per skill.
+  Collapsed view shows the first three categories, each capped at four skill
+  rows with internal scroll (48px rows, a 1rem mask fade, `tabindex=0` for
+  keyboard access); **View more / Show less** expands to the full grid with no
+  caps, and appears whenever more categories are published than the three the
+  collapsed view shows, or a card overflows four rows. Loading, empty, and
+  retryable error states are shown.
+- **Contact:** `pages/home/components/contact/contact.ts` closes the page with a
+  **Send email** primary CTA (`mailto:site.links.email`), plus CV, GitHub, and
+  dashboard actions.
 
 #### Projects page — `/projects`
 
@@ -212,7 +218,7 @@ It starts the client-project and GitHub repository requests in parallel:
   returned are still mapped and rendered.
 - `GithubRepoSignalService` calls
   `v1/github/owner/{site.github.username}/repositories`; the shared `RepoGrid`
-  shows the full list, while the landing page uses only the first two.
+  shows the full list, while the landing page uses only the first three.
   Repository links open in a new tab.
 - Client projects have loading, empty, and retryable error states. GitHub
   repositories have loading, empty, and retryable error states through
@@ -232,7 +238,7 @@ toggle, and the repository card/grid; `Maintenance` is retained but unrouted.
 Single typed source of truth for personal content and public integrations:
 
 - `site.profile` — name, handle, role, bio, location.
-- `site.links` — GitHub and CV URLs.
+- `site.links` — GitHub and CV URLs, plus the public email (`golimlim2209@gmail.com`).
 - `site.assets` — sidebar and profile avatar filenames (served from `public/`).
 - `site.notion` — page ID and public domain.
 - `site.github` — GitHub username used by the repository list and count endpoints.
@@ -311,7 +317,7 @@ details. The former dashboard profile page is parked and unrouted; its
 Stack section uses `v1/skill`.
 
 `GithubRepoSignalService` uses the owner/repositories endpoint without the
-`/count` suffix. The résumé home page displays its first two results; `/projects`
+`/count` suffix. The résumé home page displays its first three results; `/projects`
 displays the full list. The GitHub token deliberately lives on the API: the
 imported `web_resume` shipped it in the browser bundle; the résumé import
 removed it.
@@ -338,7 +344,7 @@ removed it.
 
 The résumé Projects page uses the dashboard `Project` model from
 `v1/project?includeTools=true`; the résumé home's Recent Projects preview uses
-the first two results from the GitHub repository list.
+the first three results from the GitHub repository list.
 
 The unused `PortfolioItems` and `Result<T>` models were deleted in 008.
 

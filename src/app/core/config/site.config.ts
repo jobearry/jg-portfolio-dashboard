@@ -11,6 +11,7 @@ export interface ProfileConfig {
 export interface LinkConfig {
   readonly github: string;
   readonly cv: string;
+  readonly email: string;
 }
 
 export interface AssetConfig {
@@ -50,6 +51,7 @@ export const site = {
   links: {
     github: 'https://github.com/jobearry',
     cv: environment.cvURL,
+    email: 'golimlim2209@gmail.com',
   },
   assets: {
     sidebarAvatar: `${environment.imgDir}/grad_1.jpeg`,
