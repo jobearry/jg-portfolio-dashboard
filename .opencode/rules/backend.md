@@ -33,7 +33,7 @@ is a separate codebase; this repository contains no server code.
   `src/app/features/dashboard/core/models/`.
 - If write operations are introduced, add typed request/response models and a
   service method. Never put mutation logic in components.
-- Update the corresponding interface **and** `.github/docs/` whenever the
+- Update the corresponding interface **and** `docs/` whenever the
   backend contract changes.
 - Surface API failures as explicit error states; do not swallow them or leave
   loading states stuck.
@@ -41,7 +41,7 @@ is a separate codebase; this repository contains no server code.
 ## Configuration and secrets
 
 - Notion page ID and public domain must not be hardcoded in components; use the
-  typed site configuration described in `.github/docs/current-state.md`.
+  typed site configuration described in `docs/current-state.md`.
 - Never commit secrets, tokens, API keys, or `.env` contents. `.env` is
   gitignored; `.env.example` is the template.
 - Do not add CORS workarounds or proxy hacks without documenting the constraint.
