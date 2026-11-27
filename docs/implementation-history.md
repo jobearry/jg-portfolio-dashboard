@@ -52,3 +52,4 @@ remain in git history. For what is true now, read
 | 043 | Redesign QA, API model alignment, and cleanup |
 | 044 | JWT dashboard gate: token dialog, validation, guard, and lock control |
 | 045 | `exp`-based session expiry, 401 handling, auto-reopened gate, countdown |
+| 046 | JWT-gated experience add/edit modal, mapped DTO writes, timeline card refresh |

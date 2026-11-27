@@ -40,16 +40,33 @@ Live screens: how they're reached, what they render, data source, interactions.
 
 ## 2. Timeline — `/timeline`
 
-**File:** `features/dashboard/pages/timeline/timeline.ts`
+**Files:** `features/dashboard/pages/timeline/timeline.ts`,
+`components/experience-form/{ts,html}`
 
-- **Data:** `v1/experience?includeProjects=false` → `ExperienceTimeline[]`.
+- **Data:** `v1/experience?includeProjects=false` → nullable `ExperienceDto[]`,
+  mapped by `ExperienceMapper.fromDto` to `ExperienceTimeline[]`.
 - **Order:** `startedAt` newest first; invalid dates after valid ones.
 - **States:** `app-skeleton` (`text` + `list`) while loading; shared error block
   with **Try again**; empty message when no experience.
-- **Shows:** per experience — company (`h3`), start-year tag (omitted if invalid
-  date), role | description, responsibility, nested projects block with name,
-  description, tech-stack chips.
-- **Interactions:** none (read-only, no dialog/links).
+- **Shows:** per experience — company (`h3`), optional `type` badge, role,
+  `start – end` range (or `Present`) with duration line, description,
+  responsibility, and read-only nested projects (name, description, tech chips).
+- **Layout:** a single ordered vertical timeline in a centered column with wider
+  responsive gutters and a continuous accent rail with one node per experience
+  entry. Each entry contains an equal-height bordered card that leads with company
+  and role, groups the period, type, and duration as metadata, and places an
+  icon-only edit pencil in the upper-right corner
+  (`features/dashboard/pages/timeline/timeline.ts`).
+- **Interactions:**
+  - Header **Add experience** and each card's upper-right pencil button
+    (`aria-label="Edit experience at {company}"`) open one modal form.
+  - The form edits `company`, `role`, `startedAt`, `finishedAt`, `description`,
+    `responsibility`, `type`; the first three are required. Native inputs and
+    signals are used; `@angular/forms` is not installed.
+  - Save calls `POST`/`PUT v1/admin/experience[/id]`, closes the modal, then
+    reloads the list. `400`/`404`/`503` appear in a form alert; `401` is left to
+    the auth interceptor (gate reopens, form closes, no duplicate message).
+  - Projects and `durationMonths` are not editable. Delete is not implemented.
 
 ---
 

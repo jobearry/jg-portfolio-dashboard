@@ -16,4 +16,14 @@ export class ApiClient {
     const url = `${this.baseUrl}/${endpoint}`;
     return await firstValueFrom(this.apiClient.get<T>(url, { headers: this.headers }));
   }
+
+  async post<T>(endpoint: string, body: object) {
+    const url = `${this.baseUrl}/${endpoint}`;
+    return await firstValueFrom(this.apiClient.post<T>(url, body, { headers: this.headers }));
+  }
+
+  async put<T>(endpoint: string, body: object) {
+    const url = `${this.baseUrl}/${endpoint}`;
+    return await firstValueFrom(this.apiClient.put<T>(url, body, { headers: this.headers }));
+  }
 }

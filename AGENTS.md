@@ -12,9 +12,10 @@ The résumé feature in `src/app/features/resume/` provides the public pages at
 About, timeline, certifications, Recent Projects, and Technical Stack;
 `/projects` shows client-project cards and the full GitHub repository list.
 The dashboard lives under `/dashboard` and provides an overview, career
-timeline, and a Notion-backed blog. Data access is **read-only**. The dashboard
-is gated by a JWT that the visitor pastes into the header dialog; the public
-résumé pages stay open.
+timeline, and a Notion-backed blog. Data access is **read-only except for the
+JWT-gated experience add/edit actions on `/timeline`**. The dashboard is gated
+by a JWT that the visitor pastes into the header dialog; the public résumé pages
+stay open.
 
 Angular SPA that consumes an external **C# / .NET REST API**; no server code
 lives in this repository.
@@ -115,9 +116,10 @@ These are real constraints and intentional gaps, not hypotheticals:
 - `github/repos` is not implemented in the .NET API yet; the projects page shows
   its empty state until it is. The GitHub token lives on the API — never put one
   in the frontend environment.
-- The dashboard gate is UI-only: portfolio reads stay anonymous on the server
-  and the JWT is a shared service token, not a user identity. The token is
-  pasted at runtime and never committed.
+- The dashboard gate is UI-only for reads: portfolio reads stay anonymous on the
+  server, while the admin experience write endpoints require the JWT. The JWT is
+  a shared service token, not a user identity. It is pasted at runtime and never
+  committed.
 - Blog intentionally has no pagination, search, or excerpts.
 - `scripts/genenv.js` requires `.env` (`dotenv` is explicit); running
   `npm run build` rewrites `src/environments/*.ts`.

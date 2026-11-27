@@ -114,9 +114,16 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 
 - `PortfolioSignalService<T>` — `{ content: T[], loading, error }`; `getState`,
   `setLoading`, `getPortfolioResource` (try/catch; clears content on failure).
+  `ExperienceSignalService` also exposes `setContent`/`setError` so mapped DTOs
+  can replace the signal state.
 - `ResourceSignalService<T>` — single-object counterpart for count endpoints.
+- `getErrorMessage` / `getApiErrorMessage` (`shared/utils/error.util.ts`) —
+  status-based fallback and `ProblemDetails.detail ?? title` for admin forms.
+- `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`; all send JSON headers and
+  are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
-  `ExperienceSignalService`, `SkillsSignalService`, `RecommendationService`,
+  `ExperienceSignalService`, `ExperienceAdminService` (mapped reload + admin
+  writes), `SkillsSignalService`, `RecommendationService`,
   `GithubCountSignalService`, `NotionCountSignalService`,
   `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
 
@@ -130,6 +137,8 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `v1/github/owner/{username}/repositories` | Résumé Home + Projects | `GithubRepo[]` |
 | `v1/notion/{pageId}/count` | Overview | `OverviewItem` |
 | `v1/experience?includeProjects=false` | Dashboard Timeline, Résumé Home | `ExperienceTimeline[]` |
+| `POST v1/admin/experience` | Timeline add form | `ExperienceDto` (Bearer required) |
+| `PUT v1/admin/experience/{id}` | Timeline edit form | `ExperienceDto` (Bearer required) |
 | `v1/skill` | Résumé Home | `TechStackItem[]` |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
@@ -142,8 +151,14 @@ outside the app, not by any service. The GitHub token lives on the API.
 
 - `OverviewItem { key, count }`
 - `ExperienceTimeline { id, company, role, startedAt, finishedAt, durationMonths, description, responsibility, type, projects? }`
+- `ExperienceDto` — nullable API form of `ExperienceTimeline`; `ExperienceMapper.fromDto` supplies empty-string/zero/null defaults.
+- `ExperienceWriteRequest` (aliased as `CreateExperienceRequest` /
+  `UpdateExperienceRequest`) — nullable `company`, `role`, `startedAt`,
+  `finishedAt`, `description`, `responsibility`, `type`. `durationMonths` and
+  `projects` are never written.
 - `Project { id, projectName, description, contribution, techStacks? }`
 - `TechStackItem { id, stackName, imgSrc, category }`
+- `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
 - `GithubRepo { id, name, fullName, htmlUrl, description, language, topics }` (`features/resume/core/models/`)
@@ -172,7 +187,10 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Sidebar, sticky header, content wrapper (~1200px, `p-3`).
 - [x] Skeleton loading + error/empty states on every data screen.
 - [x] Overview metric cards (API + GitHub + Notion counts, independent retry).
-- [x] Timeline cards (brand year badge, role, responsibility, nested projects).
+- [x] Timeline cards (company/type badge, role, date range, duration,
+  responsibility, nested projects) with per-card Edit action.
+- [x] JWT-gated timeline add/edit modal; reloads the list after save and shows
+  `400`/`404`/`503` errors in the form (`401` stays with the auth interceptor).
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -180,8 +198,8 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: CRUD writes, in-app login/registration, search/filter/pagination,
-toasts, analytics, i18n.
+Not present: delete UI, writes for entities other than experience, in-app
+login/registration, search/filter/pagination, toasts, analytics, i18n.
 
 ## Removed in 008
 

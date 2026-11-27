@@ -9,7 +9,15 @@ import { PortfolioSignalService } from './portfolio-base.service';
 import { ResourceSignalService } from './resource-base.service';
 
 @Injectable({ providedIn: 'root' })
-export class ExperienceSignalService extends PortfolioSignalService<ExperienceTimeline> {}
+export class ExperienceSignalService extends PortfolioSignalService<ExperienceTimeline> {
+  setContent(items: ExperienceTimeline[]): void {
+    this._state.set({ content: items, loading: false, error: null });
+  }
+
+  setError(message: string): void {
+    this._state.set({ content: [], loading: false, error: message });
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class SkillsSignalService extends PortfolioSignalService<TechStackItem> {}

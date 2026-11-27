@@ -17,7 +17,12 @@ Open items only. Resolved work is in
 
 ## Timeline
 
-- Read-only and non-interactive: no expansion, links, or dialog.
+- Add/edit are implemented; delete is deferred despite the API exposing it.
+- `projects` and server-derived `durationMonths` are read-only in the form.
+- No field-level validation messages: required fields only disable **Save**, and
+  server `ProblemDetails` is reduced to `detail ?? title ??` a status-based
+  fallback through `getErrorMessage`.
+- No drag-and-drop reordering or inline editing; changes reload the whole list.
 - No empty nested-projects block is rendered.
 
 ## Blog
@@ -32,7 +37,8 @@ Open items only. Resolved work is in
 
 ## Data layer
 
-- No interceptors, retries, timeouts, or cancellation.
+- Only the JWT bearer/401 interceptor exists; no retries, timeouts, or
+  cancellation.
 - All services are `providedIn: 'root'`: state persists across navigation and
   pages re-fetch on every visit.
 - No cache or shared store; each component fetches independently.
@@ -53,7 +59,8 @@ Open items only. Resolved work is in
   leeway, but the server remains the authority — rotation or revocation can
   produce a 401 before `exp`.
 - A non-validation 401 clears the token, reopens the gate, and returns to `/`;
-  the originating data request still shows its error state.
+  the originating data request still shows its error state. The exception is an
+  admin experience write: its modal closes so the gate owns the response.
 - The token and expiry are held in `sessionStorage` and the token is sent on
   every request. Legacy raw-token values are ignored. No runtime claim/role
   checks are performed in the frontend.

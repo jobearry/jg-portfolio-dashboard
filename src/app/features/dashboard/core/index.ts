@@ -3,3 +3,7 @@ export * from './models/project';
 export * from './models/experience';
 export * from './models/techstack';
 export * from './models/feedback-item';
+export * from './models/experience-write';
+export * from './models/experience.mapper';
+export * from './models/problem-details';
+export * from './services/experience-admin.service';
