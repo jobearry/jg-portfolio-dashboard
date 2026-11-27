@@ -41,21 +41,25 @@ Live screens: how they're reached, what they render, data source, interactions.
 ## 2. Timeline — `/timeline`
 
 **Files:** `features/dashboard/pages/timeline/timeline.ts`,
-`components/experience-form/{ts,html}`
+`components/experience-form/{ts,html}`,
+`components/experience-projects/{ts,html}`, `components/project-form/{ts,html}`
 
 - **Data:** `v1/experience?includeProjects=false` → nullable `ExperienceDto[]`,
-  mapped by `ExperienceMapper.fromDto` to `ExperienceTimeline[]`.
+  mapped by `ExperienceMapper.fromDto` to `ExperienceTimeline[]`. The projects
+  modal fetches one experience with `v1/experience/{id}` and creates projects
+  with `POST v1/admin/experience/{experienceId}/project`.
 - **Order:** `startedAt` newest first; invalid dates after valid ones.
 - **States:** `app-skeleton` (`text` + `list`) while loading; shared error block
   with **Try again**; empty message when no experience.
 - **Shows:** per experience — company (`h3`), optional `type` badge, role,
-  `start – end` range (or `Present`) with duration line, description,
-  responsibility, and read-only nested projects (name, description, tech chips).
+  `start – end` range (or `Present`) with duration line, description, and
+  responsibility. Projects are shown only in the modal.
 - **Layout:** a single ordered vertical timeline in a centered column with wider
   responsive gutters and a continuous accent rail with one node per experience
   entry. Each entry contains an equal-height bordered card that leads with company
-  and role, groups the period, type, and duration as metadata, and places an
-  icon-only edit pencil in the upper-right corner
+  and role, groups the period, type, and duration as metadata, and places two
+  icon-only actions in the upper-right corner: **View projects** and edit. Both
+  show their name as a native tooltip and keep an `aria-label`
   (`features/dashboard/pages/timeline/timeline.ts`).
 - **Interactions:**
   - Header **Add experience** and each card's upper-right pencil button
@@ -66,7 +70,17 @@ Live screens: how they're reached, what they render, data source, interactions.
   - Save calls `POST`/`PUT v1/admin/experience[/id]`, closes the modal, then
     reloads the list. `400`/`404`/`503` appear in a form alert; `401` is left to
     the auth interceptor (gate reopens, form closes, no duplicate message).
-  - Projects and `durationMonths` are not editable. Delete is not implemented.
+  - Each card's **View projects** button opens a modal titled
+    `Projects at {company}` with loading skeleton, empty state, error retry, and
+    project names/descriptions/contributions/tech chips. Close or `401` closes
+    the modal; `401` remains with the auth interceptor.
+  - The modal's **Add project** form saves `projectName` (required),
+    `description`, and `contribution` to
+    `POST v1/admin/experience/{experienceId}/project`, then reloads the modal
+    data. `400`/`404`/`503` appear in a form alert; tech stacks are read-only
+    and a stack picker is deferred.
+  - Projects and `durationMonths` are not editable in the experience form.
+    Delete is not implemented.
 
 ---
 

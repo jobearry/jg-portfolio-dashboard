@@ -5,5 +5,7 @@ export * from './models/techstack';
 export * from './models/feedback-item';
 export * from './models/experience-write';
 export * from './models/experience.mapper';
+export * from './models/project-write';
+export * from './models/project.mapper';
 export * from './models/problem-details';
 export * from './services/experience-admin.service';

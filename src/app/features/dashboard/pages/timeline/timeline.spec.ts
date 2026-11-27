@@ -104,19 +104,39 @@ describe('Timeline', () => {
     expect(cards.every((card) => card.classList.contains('min-h-64'))).toBe(true);
   });
 
-  it('places an icon-only edit action in the upper-right corner of the card', async () => {
+  it('places the edit action in the upper-right card actions', async () => {
     const element = await render([base]);
     const card = element.querySelector('ol > li > article') as HTMLElement;
     const button = card.querySelector(
       'button[aria-label="Edit experience at Acme"]',
     ) as HTMLButtonElement;
     const header = card.firstElementChild?.firstElementChild as HTMLElement;
+    const actions = button.parentElement as HTMLElement;
 
     expect(button.textContent).not.toContain('Edit');
+    expect(button.title).toBe('Edit experience');
     expect(button.querySelector('ng-icon')).not.toBeNull();
     expect(header.classList.contains('justify-between')).toBe(true);
     expect(header.firstElementChild?.contains(button)).toBe(false);
-    expect(header.lastElementChild).toBe(button);
+    expect(actions.classList.contains('shrink-0')).toBe(true);
+    expect(actions.lastElementChild).toBe(button);
+  });
+
+  it('renders an icon-only View projects action with a tooltip beside the pencil', async () => {
+    const element = await render([base]);
+    const button = element.querySelector(
+      'button[aria-label="View projects at Acme"]',
+    ) as HTMLButtonElement;
+
+    expect(button.textContent).not.toContain('View projects');
+    expect(button.title).toBe('View projects');
+    expect(button.classList.contains('size-9')).toBe(true);
+    expect(button.querySelector('ng-icon')).not.toBeNull();
+    expect(
+      button.parentElement?.contains(
+        element.querySelector('button[aria-label="Edit experience at Acme"]'),
+      ),
+    ).toBe(true);
   });
 
   it('orders experiences by start date descending', async () => {
@@ -131,7 +151,7 @@ describe('Timeline', () => {
     ).toEqual(['Newest', 'Middle', 'Older']);
   });
 
-  it('renders nested projects and tech chips', async () => {
+  it('does not render inline project blocks in timeline cards', async () => {
     const element = await render([
       {
         ...base,
@@ -147,8 +167,62 @@ describe('Timeline', () => {
       },
     ]);
 
-    expect(element.textContent).toContain('Portal');
-    expect(element.textContent).toContain('Angular');
+    expect(element.textContent).not.toContain('Portal');
+    expect(element.textContent).not.toContain('Angular');
+    expect(element.querySelector('button[aria-label="View projects at Acme"]')).not.toBeNull();
+  });
+
+  it('opens the projects modal and renders the empty state', async () => {
+    const fixture = await setup([base]);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (
+      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="dialog"]')?.textContent).toContain('Projects at Acme');
+
+    http.expectOne(`${environment.portfolioApi}/v1/experience/1`).flush({ ...base, projects: [] });
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="status"]')?.textContent).toContain('No projects yet');
+  });
+
+  it('closes the projects modal when cancelled', async () => {
+    const fixture = await setup([base]);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (
+      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    http.expectOne(`${environment.portfolioApi}/v1/experience/1`).flush({ ...base, projects: [] });
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    (element.querySelector('button[aria-label="Close dialog"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="dialog"]')).toBeFalsy();
+  });
+
+  it('closes the projects modal when the request is unauthorized', async () => {
+    const fixture = await setup([base]);
+    const element = fixture.nativeElement as HTMLElement;
+
+    (
+      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    http
+      .expectOne(`${environment.portfolioApi}/v1/experience/1`)
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="dialog"]')).toBeFalsy();
   });
 
   it('shows an empty state when there is no experience', async () => {

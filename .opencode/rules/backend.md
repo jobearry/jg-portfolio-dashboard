@@ -7,16 +7,19 @@ is a separate codebase; this repository contains no server code.
 
 - Base URL comes from `environment.portfolioApi` (generated from `.env` by
   `scripts/genenv.js`). Never hardcode the API host in code.
-- The app is **read-only for reads**: entity reads are GET. The one explicit
-  exception is JWT-gated experience add/edit on `/timeline` (`POST`/`PUT
-  v1/admin/experience[/…]`), approved in implementation history 046. Do not
-  build other CRUD UI without an explicit decision. Auth validation is also a
-  GET, with a Bearer token.
+- The app is **read-only for reads**: entity reads are GET. The explicit
+  exceptions are JWT-gated experience add/edit on `/timeline` (`POST`/`PUT
+  v1/admin/experience[/…]`), approved in implementation history 046, and
+  JWT-gated project creation from the experience projects modal (`POST
+  v1/admin/experience/{experienceId}/project`), approved in implementation
+  history 047. Do not build other CRUD UI without an explicit decision. Auth
+  validation is also a GET, with a Bearer token.
 - Live endpoints:
   - `GET v1/overview`
   - `GET v1/github/owner/{username}/repositories/count`
   - `GET v1/notion/{pageId}/count`
   - `GET v1/experience?includeProjects=false`
+  - `GET v1/experience/{id}`
   - `GET v1/project?includeTools=false`
   - `GET v1/skill`
   - `GET v1/recommendation`
@@ -25,6 +28,8 @@ is a separate codebase; this repository contains no server code.
     `exp` (Unix seconds in a `string[]`)
   - `POST v1/admin/experience` — Bearer token required; `ExperienceDto`
   - `PUT v1/admin/experience/{id}` — Bearer token required; `ExperienceDto`
+  - `POST v1/admin/experience/{experienceId}/project` — Bearer token required;
+    `CreateProjectRequest` returns `ProjectDto`
 - `POST v1/auth/login` is **not called by the frontend**. The admin JWT is
   obtained manually and pasted into the dashboard gate. Client-side expiry from
   `exp` is session UX only; the server remains the authority on validity.

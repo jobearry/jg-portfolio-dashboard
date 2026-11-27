@@ -18,12 +18,17 @@ Open items only. Resolved work is in
 ## Timeline
 
 - Add/edit are implemented; delete is deferred despite the API exposing it.
-- `projects` and server-derived `durationMonths` are read-only in the form.
+- `projects` and server-derived `durationMonths` are read-only in the experience
+  form. Projects are created from the per-experience modal instead.
+- The add-project form has no stack picker; `techStacks` is displayed read-only
+  and later stack-linking endpoints are not wired.
+- There is no project edit/delete UI, even though the API exposes update and
+  delete operations.
 - No field-level validation messages: required fields only disable **Save**, and
   server `ProblemDetails` is reduced to `detail ?? title ??` a status-based
   fallback through `getErrorMessage`.
 - No drag-and-drop reordering or inline editing; changes reload the whole list.
-- No empty nested-projects block is rendered.
+- Timeline cards no longer render a nested-projects block; use **View projects**.
 
 ## Blog
 

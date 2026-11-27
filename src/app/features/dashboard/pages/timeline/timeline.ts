@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucidePencil, lucidePlus } from '@ng-icons/lucide';
+import { lucideFolderOpen, lucidePencil, lucidePlus } from '@ng-icons/lucide';
 import {
   ExperienceSignalService,
   getApiErrorMessage,
@@ -18,11 +18,12 @@ import {
 } from '../../../../shared';
 import { ExperienceAdminService, ExperienceTimeline, ExperienceWriteRequest } from '../../core';
 import { ExperienceForm } from './components/experience-form/experience-form';
+import { ExperienceProjects } from './components/experience-projects/experience-projects';
 
 @Component({
   selector: 'app-timeline',
-  imports: [ExperienceForm, NgIcon, PageHeader, Skeleton, StateMessage],
-  providers: [provideIcons({ lucidePencil, lucidePlus })],
+  imports: [ExperienceForm, ExperienceProjects, NgIcon, PageHeader, Skeleton, StateMessage],
+  providers: [provideIcons({ lucideFolderOpen, lucidePencil, lucidePlus })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
@@ -78,14 +79,27 @@ import { ExperienceForm } from './components/experience-form/experience-form';
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      [attr.aria-label]="'Edit experience at ' + experience.company"
-                      class="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      (click)="openEdit(experience)"
-                    >
-                      <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
-                    </button>
+                    <div class="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        title="View projects"
+                        [attr.aria-label]="'View projects at ' + experience.company"
+                        class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        (click)="openProjects(experience)"
+                      >
+                        <ng-icon name="lucideFolderOpen" size="16" aria-hidden="true" />
+                      </button>
+
+                      <button
+                        type="button"
+                        title="Edit experience"
+                        [attr.aria-label]="'Edit experience at ' + experience.company"
+                        class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        (click)="openEdit(experience)"
+                      >
+                        <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
+                      </button>
+                    </div>
                   </div>
 
                   <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -116,48 +130,19 @@ import { ExperienceForm } from './components/experience-form/experience-form';
                       <p>{{ experience.responsibility }}</p>
                     }
                   </div>
-
-                  @if (experience.projects && experience.projects.length > 0) {
-                    <div class="mt-auto flex flex-col gap-3 border-t border-border pt-4">
-                      <h4
-                        class="flex items-center gap-2 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase"
-                      >
-                        <span
-                          class="h-2 w-2 rounded-full bg-accent-brand"
-                          aria-hidden="true"
-                        ></span>
-                        Projects
-                      </h4>
-
-                      <ul class="grid gap-3">
-                        @for (project of experience.projects; track project.id) {
-                          <li
-                            class="flex flex-col gap-2 rounded-md border border-border bg-background/40 p-4"
-                          >
-                            <h5 class="text-sm font-semibold">{{ project.projectName }}</h5>
-                            <p class="text-sm leading-relaxed text-muted-foreground">
-                              {{ project.description }}
-                            </p>
-
-                            <ul class="flex flex-wrap gap-2">
-                              @for (stack of project.techStacks ?? []; track stack.id) {
-                                <li
-                                  class="rounded-md bg-muted px-2 py-1 text-xs tracking-wide text-muted-foreground"
-                                >
-                                  {{ stack.stackName }}
-                                </li>
-                              }
-                            </ul>
-                          </li>
-                        }
-                      </ul>
-                    </div>
-                  }
                 </div>
               </article>
             </li>
           }
         </ol>
+
+        @if (projectsFor(); as selected) {
+          <app-experience-projects
+            [experience]="selected"
+            (cancelled)="closeProjects()"
+            (unauthorized)="closeProjects()"
+          />
+        }
 
         @if (formOpen()) {
           <app-experience-form
@@ -185,6 +170,7 @@ export class Timeline implements OnInit {
   protected readonly formOpen = signal(false);
   protected readonly editing = signal<ExperienceTimeline | null>(null);
   protected readonly formError = signal<string | null>(null);
+  protected readonly projectsFor = signal<ExperienceTimeline | null>(null);
 
   ngOnInit() {
     void this.load();
@@ -210,6 +196,14 @@ export class Timeline implements OnInit {
     this.formOpen.set(false);
     this.editing.set(null);
     this.formError.set(null);
+  }
+
+  protected openProjects(experience: ExperienceTimeline): void {
+    this.projectsFor.set(experience);
+  }
+
+  protected closeProjects(): void {
+    this.projectsFor.set(null);
   }
 
   protected async save(request: ExperienceWriteRequest): Promise<void> {

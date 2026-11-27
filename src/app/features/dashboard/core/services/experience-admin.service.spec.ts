@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../../../environments/environment';
 import { ExperienceSignalService } from '../../../../shared';
 import { ExperienceDto, ExperienceWriteRequest } from '../models/experience-write';
+import { CreateProjectRequest, ProjectDto } from '../models/project-write';
 import { ExperienceAdminService } from './experience-admin.service';
 
 describe('ExperienceAdminService', () => {
@@ -26,6 +27,18 @@ describe('ExperienceAdminService', () => {
     ...body,
     durationMonths: 12,
     projects: null,
+  };
+
+  const projectBody: CreateProjectRequest = {
+    projectName: 'Portal',
+    description: 'Internal dashboard',
+    contribution: 'Frontend',
+  };
+
+  const projectDto: ProjectDto = {
+    id: 9,
+    ...projectBody,
+    techStacks: null,
   };
 
   beforeEach(() => {
@@ -84,5 +97,29 @@ describe('ExperienceAdminService', () => {
     request.flush(dto);
 
     await expect(result).resolves.toMatchObject({ id: 7, company: 'Acme' });
+  });
+
+  it('getWithProjects_WhenCalled_GetsExperienceByIdAndMapsProjects', async () => {
+    const result = service.getWithProjects(7);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/experience/7`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ ...dto, projects: [projectDto] });
+
+    await expect(result).resolves.toMatchObject({
+      id: 7,
+      projects: [{ id: 9, projectName: 'Portal' }],
+    });
+  });
+
+  it('createProject_WhenCalled_PostsToExperienceAndReturnsMappedProject', async () => {
+    const result = service.createProject(7, projectBody);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/experience/7/project`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(projectBody);
+    request.flush(projectDto);
+
+    await expect(result).resolves.toMatchObject({ id: 9, projectName: 'Portal' });
   });
 });

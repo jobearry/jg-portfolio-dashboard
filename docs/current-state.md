@@ -137,8 +137,10 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `v1/github/owner/{username}/repositories` | Résumé Home + Projects | `GithubRepo[]` |
 | `v1/notion/{pageId}/count` | Overview | `OverviewItem` |
 | `v1/experience?includeProjects=false` | Dashboard Timeline, Résumé Home | `ExperienceTimeline[]` |
+| `v1/experience/{id}` | Timeline projects modal | `ExperienceDto` |
 | `POST v1/admin/experience` | Timeline add form | `ExperienceDto` (Bearer required) |
 | `PUT v1/admin/experience/{id}` | Timeline edit form | `ExperienceDto` (Bearer required) |
+| `POST v1/admin/experience/{experienceId}/project` | Timeline add-project form | `ProjectDto` (Bearer required) |
 | `v1/skill` | Résumé Home | `TechStackItem[]` |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
@@ -151,12 +153,18 @@ outside the app, not by any service. The GitHub token lives on the API.
 
 - `OverviewItem { key, count }`
 - `ExperienceTimeline { id, company, role, startedAt, finishedAt, durationMonths, description, responsibility, type, projects? }`
-- `ExperienceDto` — nullable API form of `ExperienceTimeline`; `ExperienceMapper.fromDto` supplies empty-string/zero/null defaults.
+- `ExperienceDto` — nullable API form of `ExperienceTimeline`; its `projects` are
+  `ProjectDto[] | null`. `ExperienceMapper.fromDto` supplies empty-string/zero/null
+  defaults and maps nested projects with `ProjectMapper.fromDto`.
 - `ExperienceWriteRequest` (aliased as `CreateExperienceRequest` /
   `UpdateExperienceRequest`) — nullable `company`, `role`, `startedAt`,
   `finishedAt`, `description`, `responsibility`, `type`. `durationMonths` and
   `projects` are never written.
 - `Project { id, projectName, description, contribution, techStacks? }`
+- `CreateProjectRequest { projectName, description, contribution }` — nullable
+  payload accepted by `POST v1/admin/experience/{experienceId}/project`.
+- `ProjectDto` — nullable API response for a project; `ProjectMapper.fromDto`
+  maps it to `Project` with safe defaults. Tech stacks are read-only for now.
 - `TechStackItem { id, stackName, imgSrc, category }`
 - `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
@@ -188,9 +196,13 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Skeleton loading + error/empty states on every data screen.
 - [x] Overview metric cards (API + GitHub + Notion counts, independent retry).
 - [x] Timeline cards (company/type badge, role, date range, duration,
-  responsibility, nested projects) with per-card Edit action.
+  responsibility) with per-card Edit and View projects actions; projects are no
+  longer rendered inline.
 - [x] JWT-gated timeline add/edit modal; reloads the list after save and shows
   `400`/`404`/`503` errors in the form (`401` stays with the auth interceptor).
+- [x] Per-experience projects modal with loading/empty/error/list states and a
+  basic Add project form; tech stacks are displayed only, and a stack picker is
+  deferred.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route

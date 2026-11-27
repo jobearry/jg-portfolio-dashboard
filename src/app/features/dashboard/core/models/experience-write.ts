@@ -1,4 +1,4 @@
-import { Project } from './project';
+import { ProjectDto } from './project-write';
 
 /**
  * Payload accepted by `POST v1/admin/experience` and `PUT v1/admin/experience/{id}`.
@@ -29,5 +29,5 @@ export interface ExperienceDto {
   description: string | null;
   responsibility: string | null;
   type: string | null;
-  projects: Project[] | null;
+  projects: ProjectDto[] | null;
 }
