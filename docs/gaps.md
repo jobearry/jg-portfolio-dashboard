@@ -48,15 +48,15 @@ Open items only. Resolved work is in
   server. Real access control needs a backend change.
 - The JWT is a shared service token (`sub=portfolio-api`, `role=Admin`), not a
   user identity. Anyone holding it has admin access.
-- Login is manual: the app never calls `/auth/login`. Tokens expire in ~60
-  minutes; an expired token still passes the guard after a reload until a
-  request fails. There is no global 401 handler — data screens show their
-  error state, and **Lock dashboard** clears the token.
-- The token is held in `sessionStorage` and sent on every request. No runtime
-  claim/role checks are performed in the frontend.
-- The Contact section's **View dashboard** CTA is still a plain `routerLink`;
-  with no token the guard sends it back to `/` without opening the token dialog.
-  The header icon is the supported unlock entry point.
+- Login is manual: the app never calls `/auth/login`. Expiry is client-side UX:
+  `exp` from `/auth/me` drives a countdown and a guard check with a 60-second
+  leeway, but the server remains the authority — rotation or revocation can
+  produce a 401 before `exp`.
+- A non-validation 401 clears the token, reopens the gate, and returns to `/`;
+  the originating data request still shows its error state.
+- The token and expiry are held in `sessionStorage` and the token is sent on
+  every request. Legacy raw-token values are ignored. No runtime claim/role
+  checks are performed in the frontend.
 - The token dialog has no focus trap: Escape and focus return work, but Tab can
   reach background content.
 

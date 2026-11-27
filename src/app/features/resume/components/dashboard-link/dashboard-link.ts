@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  effect,
   inject,
   signal,
   viewChild,
@@ -9,6 +10,7 @@ import {
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideLayoutDashboard, lucideX } from '@ng-icons/lucide';
+import { AuthGateService } from '../../../../core/auth/auth-gate.service';
 import { AuthService } from '../../../../core/auth/auth.service';
 
 /**
@@ -25,6 +27,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 })
 export class DashboardLink {
   private readonly auth = inject(AuthService);
+  private readonly gate = inject(AuthGateService);
   private readonly router = inject(Router);
 
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
@@ -34,6 +37,15 @@ export class DashboardLink {
   protected readonly token = signal('');
   protected readonly busy = signal(false);
   protected readonly authError = this.auth.error;
+
+  constructor() {
+    effect(() => {
+      if (this.gate.unlockRequested()) {
+        this.open();
+        this.gate.consume();
+      }
+    });
+  }
 
   protected open(): void {
     this.auth.clearError();

@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { type MockInstance, vi } from 'vitest';
 import { environment } from '../../../../../environments/environment';
+import { AuthGateService } from '../../../../core/auth/auth-gate.service';
 import { authInterceptor } from '../../../../core/auth/auth.interceptor';
 import { AuthTokenStore } from '../../../../core/auth/auth-token-store';
 import { DashboardLink } from './dashboard-link';
@@ -100,11 +101,20 @@ describe('DashboardLink', () => {
     http.expectOne(`${environment.portfolioApi}/v1/auth/me`).flush({
       sub: ['portfolio-api'],
       role: ['Admin'],
+      exp: [String(Math.floor(Date.now() / 1000) + 3600)],
     });
     await settle();
 
     expect(navigate).toHaveBeenCalledWith(['/dashboard']);
     expect(dialog()).toBeNull();
     expect(TestBed.inject(AuthTokenStore).token()).toBe('valid.jwt.token');
+  });
+
+  it('opens the dialog automatically when the gate requests an unlock', async () => {
+    TestBed.inject(AuthGateService).requestUnlock();
+    await settle();
+
+    expect(dialog()).toBeTruthy();
+    expect(TestBed.inject(AuthGateService).unlockRequested()).toBe(false);
   });
 });

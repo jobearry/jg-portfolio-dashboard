@@ -95,9 +95,27 @@ describe('UserMenu', () => {
     expect(element.querySelector('[role="menu"]')).toBeFalsy();
   });
 
+  it('shows the remaining session time in the menu', () => {
+    TestBed.inject(AuthTokenStore).set('secret.jwt.token', Date.now() + 10 * 60_000);
+
+    const { fixture, element, trigger } = create();
+    trigger.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="menu"]')?.textContent).toContain('Session expires in 10m');
+  });
+
+  it('hides the countdown when no session is stored', () => {
+    const { fixture, element, trigger } = create();
+    trigger.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="menu"]')?.textContent).not.toContain('Session expires in');
+  });
+
   it('clears the token and returns to the résumé when locking', () => {
     const store = TestBed.inject(AuthTokenStore);
-    store.set('secret.jwt.token');
+    store.set('secret.jwt.token', Date.now() + 3_600_000);
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
     const { fixture, element, trigger } = create();

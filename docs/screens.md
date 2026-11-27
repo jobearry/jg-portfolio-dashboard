@@ -12,12 +12,14 @@ Live screens: how they're reached, what they render, data source, interactions.
 - Sticky header: mobile trigger + route title (`h1`) from `data.pageTitle`.
 - Content: centered `max-w-[75rem]`, `p-3`, inside `<main>`.
 - Active link: `routerLinkActive` exact + `aria-current="page"`.
-- Avatar dropdown: **View profile** (`/`), **Download CV** (new tab), theme
-  toggle, **Lock dashboard** (clears the JWT, returns to `/`). Keyboard + outside
-  click handled; focus returns to trigger.
+- Avatar dropdown: session countdown (whole minutes), **View profile** (`/`),
+  **Download CV** (new tab), theme toggle, **Lock dashboard** (clears the JWT,
+  returns to `/`). Keyboard + outside click handled; focus returns to trigger.
 - Theme: stored choice / `prefers-color-scheme`, applied pre-paint.
-- **Access:** `authGuard` on the shell route sends visitors without a stored JWT
-  back to `/`. Direct `/dashboard`, `/timeline`, and `/blog` URLs are gated too.
+- **Access:** `authGuard` on the shell route sends visitors without a valid,
+  unexpired JWT back to `/` and reopens the gate. Direct `/dashboard`,
+  `/timeline`, and `/blog` URLs are gated too; a non-validation 401 does the
+  same from inside the shell.
 
 ---
 
@@ -91,8 +93,8 @@ parked, unrouted, source retained.
   Certifications (HackerRank labels), Tech stack (category grid, master order,
   **View more/Show less**), Recent projects (top 3 repos).
 - **Contact:** **Send email** (`mailto:`), **Download CV**, **View GitHub**,
-  **View dashboard** (plain link; the guard returns here without a token — use
-  the header icon to unlock).
+  **View dashboard** (plain link; the guard reopens the gate automatically when
+  no valid token is stored).
 - **Data states:** Timeline, tech stack, recent projects each show loading /
   empty / retryable error.
 - **Interactions:** fragment links scroll to anchors; theme toggle via
@@ -119,17 +121,23 @@ parked, unrouted, source retained.
 ## 7. Dashboard gate (token dialog)
 
 **Files:** `features/resume/components/dashboard-link/{dashboard-link.ts,dashboard-link.html}`,
-`core/auth/{auth-token-store,auth.service,auth.interceptor,auth.guard}`
+`core/auth/{auth-token-store,auth.service,auth.interceptor,auth.guard,auth-gate.service}`
 
-- **Trigger:** dashboard icon in `ResumeHeader` on both public pages.
+- **Trigger:** dashboard icon in `ResumeHeader` on both public pages; also
+  automatic when the guard or interceptor requests an unlock.
 - **Dialog:** password input, **Unlock** / **Cancel**, close button, Escape,
   overlay click; focus moves to the input on open and back to the trigger on
   close. `role="dialog"` + `aria-modal="true"`.
 - **Submit:** pasted JWT is trimmed, sent as a Bearer token to `GET v1/auth/me`,
-  saved in `sessionStorage` on success, then routes to `/dashboard`. Rejection
-  clears the token and shows a `role="alert"` message; the dialog stays open.
+  then stored with the `exp` claim in `sessionStorage` on success before routing
+  to `/dashboard`. Rejection clears the token and shows a `role="alert"`
+  message; the dialog stays open.
+- **Expiry:** `exp` (Unix seconds) drives the user-menu countdown and the guard
+  check with a 60-second leeway. An expired token is cleared, the gate reopens,
+  and the visitor returns to `/`. Server 401s outside `/auth/me` do the same;
+  validation 401s remain in the dialog.
 - **Direct URLs:** `authGuard` redirects `/dashboard`, `/timeline`, and `/blog`
-  to `/` when no token is stored.
+  to `/` when the token is missing or expired.
 - **Exit:** **Lock dashboard** in the user menu clears the token and returns to
   `/`.
 

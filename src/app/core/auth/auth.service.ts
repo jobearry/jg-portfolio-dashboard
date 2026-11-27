@@ -11,7 +11,9 @@ export class AuthService {
   private readonly api = inject(ApiClient);
   private readonly store = inject(AuthTokenStore);
 
-  readonly status = signal<AuthStatus>(this.store.token() ? 'authenticated' : 'anonymous');
+  readonly status = signal<AuthStatus>(
+    this.store.token() && !this.store.isExpired() ? 'authenticated' : 'anonymous',
+  );
   readonly error = signal<string | null>(null);
 
   async verify(rawToken: string): Promise<boolean> {
@@ -25,10 +27,18 @@ export class AuthService {
 
     this.status.set('validating');
     this.error.set(null);
-    this.store.set(token);
+    // Store before the request so the interceptor can attach the Bearer header.
+    this.store.set(token, 0);
 
     try {
-      await this.api.get<AuthClaims>('v1/auth/me');
+      const claims = await this.api.get<AuthClaims>('v1/auth/me');
+      const expiresAt = Number(claims.exp?.[0]) * 1000;
+
+      if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+        throw new Error('auth response has no usable expiry');
+      }
+
+      this.store.set(token, expiresAt);
       this.status.set('authenticated');
       return true;
     } catch {

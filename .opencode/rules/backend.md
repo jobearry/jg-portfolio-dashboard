@@ -19,9 +19,11 @@ is a separate codebase; this repository contains no server code.
   - `GET v1/skill`
   - `GET v1/recommendation`
   - `GET v1/notion/{pageId}`
-  - `GET v1/auth/me` — Bearer token required; returns `AuthClaims`
+  - `GET v1/auth/me` — Bearer token required; returns `AuthClaims`, including
+    `exp` (Unix seconds in a `string[]`)
 - `POST v1/auth/login` is **not called by the frontend**. The admin JWT is
-  obtained manually and pasted into the dashboard gate.
+  obtained manually and pasted into the dashboard gate. Client-side expiry from
+  `exp` is session UX only; the server remains the authority on validity.
 - Legacy endpoints are not used: `v1/portfolio/count`,
   `v1/portfolio/projects`, `v1/experience/{id}/projects`.
 - Do not guess endpoints or response shapes. If something is undocumented, ask.

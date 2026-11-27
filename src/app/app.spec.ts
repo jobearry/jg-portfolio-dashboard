@@ -15,7 +15,7 @@ describe('App shell', () => {
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
-    TestBed.inject(AuthTokenStore).set('test.jwt.token');
+    TestBed.inject(AuthTokenStore).set('test.jwt.token', Date.now() + 3_600_000);
   });
 
   afterEach(() => {

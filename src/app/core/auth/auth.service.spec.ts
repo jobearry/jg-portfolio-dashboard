@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
@@ -12,11 +13,17 @@ describe('AuthService', () => {
   let store: AuthTokenStore;
 
   const meRequest = () => http.expectOne(`${environment.portfolioApi}/v1/auth/me`);
+  const claims = (expSeconds = Math.floor(Date.now() / 1000) + 3600) => ({
+    sub: ['portfolio-api'],
+    role: ['Admin'],
+    exp: [String(expSeconds)],
+  });
 
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -29,17 +36,22 @@ describe('AuthService', () => {
 
   afterEach(() => http.verify());
 
-  it('verify_WhenTokenIsValid_SendsBearerTokenAndStoresIt', async () => {
+  it('verify_WhenTokenIsValid_SendsBearerTokenAndStoresExpiry', async () => {
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600;
     const result = service.verify('  good.jwt.token  ');
     const request = meRequest();
 
     expect(request.request.headers.get('Authorization')).toBe('Bearer good.jwt.token');
-    request.flush({ sub: ['portfolio-api'], role: ['Admin'] });
+    request.flush(claims(expiresAt));
 
     await expect(result).resolves.toBe(true);
     expect(store.token()).toBe('good.jwt.token');
+    expect(store.expiresAt()).toBe(expiresAt * 1000);
     expect(service.status()).toBe('authenticated');
-    expect(sessionStorage.getItem('portfolio-admin-token')).toBe('good.jwt.token');
+    expect(JSON.parse(sessionStorage.getItem('portfolio-admin-token') ?? '{}')).toEqual({
+      token: 'good.jwt.token',
+      expiresAt: expiresAt * 1000,
+    });
   });
 
   it('verify_WhenApiRejectsToken_ClearsTokenAndSetsError', async () => {
@@ -53,6 +65,15 @@ describe('AuthService', () => {
     expect(service.error()).toBeTruthy();
   });
 
+  it('verify_WhenClaimsHaveNoExp_RejectsToken', async () => {
+    const result = service.verify('no-exp.jwt.token');
+    meRequest().flush({ sub: ['portfolio-api'], role: ['Admin'] });
+
+    await expect(result).resolves.toBe(false);
+    expect(store.token()).toBeNull();
+    expect(service.status()).toBe('error');
+  });
+
   it('verify_WhenTokenIsBlank_ReturnsErrorWithoutCallingApi', async () => {
     await expect(service.verify('   ')).resolves.toBe(false);
 
@@ -63,7 +84,7 @@ describe('AuthService', () => {
 
   it('clear_RemovesTokenAndResetsStatus', async () => {
     const result = service.verify('good.jwt.token');
-    meRequest().flush({ sub: ['portfolio-api'], role: ['Admin'] });
+    meRequest().flush(claims());
     await result;
 
     service.clear();
@@ -73,10 +94,9 @@ describe('AuthService', () => {
     expect(service.error()).toBeNull();
   });
 
-  it('token_WhenTokenWasStoredEarlier_RestoresFromSessionStorage', () => {
+  it('token_WhenLegacyRawTokenWasStored_IgnoresIt', () => {
     sessionStorage.setItem('portfolio-admin-token', 'restored.jwt.token');
-    const restoredStore = new AuthTokenStore();
 
-    expect(restoredStore.token()).toBe('restored.jwt.token');
+    expect(new AuthTokenStore().token()).toBeNull();
   });
 });

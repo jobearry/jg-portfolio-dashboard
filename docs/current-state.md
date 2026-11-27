@@ -24,7 +24,7 @@ src/main.ts → App → app.routes.ts
   /            → Home (public résumé, no shell)
   /projects    → Projects (public, no shell)
   /profile     → redirect to /
-  ""           → Dashboard shell (authGuard → / when no token)
+  ""           → Dashboard shell (authGuard → / when token missing/expired)
       dashboard → Overview
       timeline  → Timeline
       blog      → Blog
@@ -41,7 +41,7 @@ Icons are registered per component. There are no retries or timeouts.
 |---|---|---|---|
 | `""` full | Home (résumé) | `Jonathan Golimlim \| Software Engineer` | Public, no shell |
 | `projects` | Projects (résumé) | `Projects \| Jonathan Golimlim` | Public, no shell |
-| `""` | Dashboard shell | `Dashboard \| Jonathan Golimlim` | `authGuard`; redirects to `/` without a token |
+| `""` | Dashboard shell | `Dashboard \| Jonathan Golimlim` | `authGuard`; redirects to `/` without a valid, unexpired token |
 | `dashboard` | Overview | `Dashboard \| Jonathan Golimlim` | Default |
 | `timeline` | Timeline | `Timeline \| Jonathan Golimlim` | |
 | `profile` | redirect → `""` | — | Legacy URL |
@@ -65,9 +65,9 @@ close), `shell-state.service.ts` (signals + scroll lock), `sidebar/`, `header/`,
 - Footer holds only the desktop collapse control (16rem ↔ 4.5rem, persisted in
   `localStorage`). Mobile: off-canvas 18rem panel below `md`, overlay, Escape,
   scroll lock, focus return.
-- Avatar dropdown: **View profile** (`/`), **Download CV**, theme toggle,
-  **Lock dashboard** (clears the JWT and returns to `/`). Keyboard and
-  outside-click handling included.
+- Avatar dropdown: session countdown (whole minutes), **View profile** (`/`),
+  **Download CV**, theme toggle, **Lock dashboard** (clears the JWT and returns
+  to `/`). Keyboard and outside-click handling included.
 
 Shared UI in `src/app/shared/ui/`: `page-header`, `state-message` (error/empty
 with **Try again**), `skeleton` (text/card/list/grid/entries, `role="status"`).
@@ -84,23 +84,31 @@ menu, overview, blog, résumé services.
 ### ApiClient — `core/api/api-client.ts`
 
 `environment.portfolioApi` base URL, GET only, JSON, `firstValueFrom`. The
-`authInterceptor` adds `Authorization: Bearer <token>` when a JWT is stored.
-No retries, timeouts, or error mapping.
+`authInterceptor` adds `Authorization: Bearer <token>` when a JWT is stored and
+handles non-validation 401s. No retries, timeouts, or error mapping.
 
 ### Auth — `core/auth/`
 
-- `AuthTokenStore` — the only token state: signal + `sessionStorage`
-  (`portfolio-admin-token`). Deliberately has no HTTP dependency so the
-  interceptor can read it without a DI cycle.
-- `AuthService.verify(token)` — trims, stores, calls `GET v1/auth/me`, then sets
-  `status` to `authenticated` or clears the token and sets `error` on failure.
-  `clear()` and `clearError()` reset state.
+- `AuthTokenStore` — the only token state: `token` and `expiresAt` signals plus
+  `sessionStorage` (`portfolio-admin-token`, JSON). Deliberately has no HTTP
+  dependency so the interceptor can read it without a DI cycle. `isExpired()`
+  applies a 60-second leeway; legacy raw-token values are ignored, forcing a
+  fresh paste.
+- `AuthService.verify(token)` — trims, stores temporarily (so the interceptor
+  can attach the header), calls `GET v1/auth/me`, and stores the `exp` claim as
+  `expiresAt` on success. Missing or unusable `exp` is rejected. On failure it
+  clears the token and sets `error`. `clear()` and `clearError()` reset state.
 - `authInterceptor` — attaches the Bearer header to every request when a token
-  exists.
-- `authGuard` — applied to the dashboard shell route; redirects to `/` when no
-  token is stored.
+  exists. On a 401 from any endpoint except `/v1/auth/me`, it clears the token,
+  requests the gate, and navigates to `/`; validation 401s stay visible in the
+  dialog.
+- `authGuard` — applied to the dashboard shell route; redirects to `/` when the
+  token is missing or expired, and requests the gate so the dialog reopens.
+- `AuthGateService` — shared `unlockRequested` signal; the dashboard-link dialog
+  consumes it to reopen without a manual click.
 - Registration is **out of band**: the app never calls `POST v1/auth/login`.
-  The JWT is obtained manually and pasted into the dashboard-link dialog.
+  The JWT is obtained manually and pasted into the dashboard-link dialog. Local
+  expiry is session UX only; the server remains the authority on validity.
 
 ### Services
 
@@ -167,8 +175,8 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Timeline cards (brand year badge, role, responsibility, nested projects).
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
-- [x] JWT gate: pasted token, `/auth/me` validation, route guard, Bearer header,
-  session storage, lock control.
+- [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
+  guard, 401 handling, Bearer header, session storage, countdown, lock control.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
