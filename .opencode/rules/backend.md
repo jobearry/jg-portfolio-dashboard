@@ -7,8 +7,9 @@ is a separate codebase; this repository contains no server code.
 
 - Base URL comes from `environment.portfolioApi` (generated from `.env` by
   `scripts/genenv.js`). Never hardcode the API host in code.
-- Current access is **GET-only**. The app is read-only; do not build CRUD UI
-  without an explicit decision.
+- The app is **read-only** for data: all entity requests are GET. Do not build
+  CRUD UI without an explicit decision. Auth validation is also a GET, with a
+  Bearer token.
 - Live endpoints:
   - `GET v1/overview`
   - `GET v1/github/owner/{username}/repositories/count`
@@ -18,6 +19,11 @@ is a separate codebase; this repository contains no server code.
   - `GET v1/skill`
   - `GET v1/recommendation`
   - `GET v1/notion/{pageId}`
+  - `GET v1/auth/me` — Bearer token required; returns `AuthClaims`, including
+    `exp` (Unix seconds in a `string[]`)
+- `POST v1/auth/login` is **not called by the frontend**. The admin JWT is
+  obtained manually and pasted into the dashboard gate. Client-side expiry from
+  `exp` is session UX only; the server remains the authority on validity.
 - Legacy endpoints are not used: `v1/portfolio/count`,
   `v1/portfolio/projects`, `v1/experience/{id}/projects`.
 - Do not guess endpoints or response shapes. If something is undocumented, ask.

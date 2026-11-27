@@ -39,15 +39,13 @@ describe('ResumeHeader', () => {
       '/#contact',
     ]);
 
-    expect(element.querySelector('a[aria-label="View dashboard"]')?.getAttribute('href')).toBe(
-      '/dashboard',
-    );
+    expect(element.querySelector('button[aria-label="View dashboard"]')).toBeTruthy();
   });
 
   it('exposes a theme toggle with an action-specific label', () => {
     const fixture = render();
     const element = fixture.nativeElement as HTMLElement;
-    const toggle = element.querySelector('button') as HTMLButtonElement;
+    const toggle = element.querySelector('button[aria-label^="Switch to"]') as HTMLButtonElement;
 
     const initialLabel = toggle.getAttribute('aria-label');
     expect(initialLabel).toMatch(/^Switch to (light|dark) theme$/);

@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
+import { AuthTokenStore } from './core/auth/auth-token-store';
 import { ShellStateService } from './features/dashboard/shell/shell-state.service';
 import { environment } from '../environments/environment';
 
@@ -13,6 +14,13 @@ describe('App shell', () => {
       imports: [App],
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+
+    TestBed.inject(AuthTokenStore).set('test.jwt.token', Date.now() + 3_600_000);
+  });
+
+  afterEach(() => {
+    TestBed.inject(AuthTokenStore).clear();
+    sessionStorage.clear();
   });
 
   it('creates the app', () => {
@@ -61,7 +69,7 @@ describe('App shell', () => {
     expect(element.querySelector('app-hero')).toBeTruthy();
     expect(element.querySelector('app-resume-header')).toBeTruthy();
     expect(element.querySelector('app-resume-footer')).toBeTruthy();
-    expect(element.querySelector('a[href="/dashboard"]')).toBeTruthy();
+    expect(element.querySelector('button[aria-label="View dashboard"]')).toBeTruthy();
     const profileImage = element.querySelector('#hero-image');
     expect(profileImage?.getAttribute('src')).toBe(`${environment.imgDir}/jg-profile.png`);
     expect(profileImage?.classList.contains('size-24')).toBe(true);
@@ -118,7 +126,7 @@ describe('App shell', () => {
     expect(element.querySelector('#projects-heading')?.textContent).toContain('Projects');
     expect(element.querySelectorAll('app-resume-section').length).toBe(2);
     expect(element.querySelector('app-repo-grid')).toBeTruthy();
-    expect(element.querySelector('a[href="/dashboard"]')).toBeTruthy();
+    expect(element.querySelector('button[aria-label="View dashboard"]')).toBeTruthy();
     expect(element.querySelector('a[href="/"]')).toBeTruthy();
   });
 

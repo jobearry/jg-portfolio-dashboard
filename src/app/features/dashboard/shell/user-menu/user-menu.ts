@@ -1,7 +1,17 @@
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideMoon, lucideSun, lucideUser } from '@ng-icons/lucide';
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser } from '@ng-icons/lucide';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthTokenStore } from '../../../../core/auth/auth-token-store';
 import { site } from '../../../../core/config/site.config';
 import { ThemeService } from '../../../../core/theme/theme.service';
 import { ShellStateService } from '../shell-state.service';
@@ -9,7 +19,7 @@ import { ShellStateService } from '../shell-state.service';
 @Component({
   selector: 'app-user-menu',
   imports: [NgIcon, RouterLink],
-  providers: [provideIcons({ lucideDownload, lucideMoon, lucideSun, lucideUser })],
+  providers: [provideIcons({ lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser })],
   host: {
     '(document:pointerdown)': 'onDocumentPointerDown($event)',
     '(document:keydown.escape)': 'onDocumentEscape()',
@@ -52,6 +62,12 @@ import { ShellStateService } from '../shell-state.service';
           class="absolute top-full left-0 z-50 mt-2 w-56 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
           (keydown)="onMenuKeydown($event)"
         >
+          @if (expiresInMinutes() !== null) {
+            <p class="px-2 py-1 text-xs text-muted-foreground">
+              Session expires in {{ expiresInMinutes() }}m
+            </p>
+          }
+
           <a
             routerLink="/"
             role="menuitem"
@@ -84,6 +100,16 @@ import { ShellStateService } from '../shell-state.service';
             <ng-icon [name]="themeIcon()" size="16" />
             {{ themeLabel() }}
           </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            class="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
+            (click)="lockDashboard()"
+          >
+            <ng-icon name="lucideLogOut" size="16" />
+            Lock dashboard
+          </button>
         </div>
       }
     </div>
@@ -93,11 +119,21 @@ export class UserMenu {
   protected readonly site = site;
   protected readonly theme = inject(ThemeService);
 
+  private readonly auth = inject(AuthService);
+  private readonly store = inject(AuthTokenStore);
+  private readonly router = inject(Router);
   private readonly shell = inject(ShellStateService);
   private readonly host = inject(ElementRef) as ElementRef<HTMLElement>;
 
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly menu = viewChild<ElementRef<HTMLElement>>('menu');
+
+  private readonly now = signal(Date.now());
+
+  constructor() {
+    const timer = setInterval(() => this.now.set(Date.now()), 30_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+  }
 
   protected readonly open = signal(false);
   protected readonly rail = computed(() => this.shell.isDesktop() && this.shell.collapsed());
@@ -107,6 +143,10 @@ export class UserMenu {
   protected readonly themeLabel = computed(() =>
     this.theme.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
   );
+  protected readonly expiresInMinutes = computed(() => {
+    const expiresAt = this.store.expiresAt();
+    return expiresAt === null ? null : Math.max(0, Math.ceil((expiresAt - this.now()) / 60_000));
+  });
 
   protected toggle(): void {
     if (this.open()) {
@@ -135,6 +175,13 @@ export class UserMenu {
   protected navigateToProfile(): void {
     this.close();
     this.shell.closeMobile();
+  }
+
+  protected lockDashboard(): void {
+    this.auth.clear();
+    this.close();
+    this.shell.closeMobile();
+    void this.router.navigate(['/']);
   }
 
   protected onTriggerArrowDown(event: Event): void {

@@ -1,9 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { vi } from 'vitest';
+import { AuthTokenStore } from '../../../../core/auth/auth-token-store';
 import { UserMenu } from './user-menu';
 
 describe('UserMenu', () => {
   beforeEach(async () => {
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [UserMenu],
       providers: [provideRouter([])],
@@ -12,6 +15,7 @@ describe('UserMenu', () => {
 
   afterEach(() => {
     document.documentElement.className = '';
+    vi.restoreAllMocks();
   });
 
   function create() {
@@ -88,6 +92,44 @@ describe('UserMenu', () => {
     document.body.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
     fixture.detectChanges();
 
+    expect(element.querySelector('[role="menu"]')).toBeFalsy();
+  });
+
+  it('shows the remaining session time in the menu', () => {
+    TestBed.inject(AuthTokenStore).set('secret.jwt.token', Date.now() + 10 * 60_000);
+
+    const { fixture, element, trigger } = create();
+    trigger.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="menu"]')?.textContent).toContain('Session expires in 10m');
+  });
+
+  it('hides the countdown when no session is stored', () => {
+    const { fixture, element, trigger } = create();
+    trigger.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('[role="menu"]')?.textContent).not.toContain('Session expires in');
+  });
+
+  it('clears the token and returns to the résumé when locking', () => {
+    const store = TestBed.inject(AuthTokenStore);
+    store.set('secret.jwt.token', Date.now() + 3_600_000);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    const { fixture, element, trigger } = create();
+    trigger.click();
+    fixture.detectChanges();
+
+    const lockItem = [
+      ...element.querySelectorAll<HTMLElement>('[role="menu"] button[role="menuitem"]'),
+    ].find((item) => item.textContent?.includes('Lock dashboard')) as HTMLButtonElement;
+    lockItem.click();
+    fixture.detectChanges();
+
+    expect(store.token()).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/']);
     expect(element.querySelector('[role="menu"]')).toBeFalsy();
   });
 });

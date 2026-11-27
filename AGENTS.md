@@ -12,7 +12,9 @@ The résumé feature in `src/app/features/resume/` provides the public pages at
 About, timeline, certifications, Recent Projects, and Technical Stack;
 `/projects` shows client-project cards and the full GitHub repository list.
 The dashboard lives under `/dashboard` and provides an overview, career
-timeline, and a Notion-backed blog. The app is **read-only**.
+timeline, and a Notion-backed blog. Data access is **read-only**. The dashboard
+is gated by a JWT that the visitor pastes into the header dialog; the public
+résumé pages stay open.
 
 Angular SPA that consumes an external **C# / .NET REST API**; no server code
 lives in this repository.
@@ -93,7 +95,10 @@ files. Never commit secrets.
 8. **Accessibility and valid HTML.** Landmarks, heading order, `aria-label` on
    icon-only controls, visible focus, no nested interactive elements.
 9. **No secrets, no generated-file edits, no `console.log`.**
-10. **Update the docs.** If behavior, routes, endpoints, models, or tooling
+10. **Keep auth in `core/auth`.** The JWT is pasted at runtime, stored in
+    `sessionStorage`, and attached by `authInterceptor`. Never commit a token
+    or put one in the environment; the app does not call `/auth/login`.
+11. **Update the docs.** If behavior, routes, endpoints, models, or tooling
     change, update `docs/` in the same change.
 
 ## 5. Known landmines
@@ -110,6 +115,9 @@ These are real constraints and intentional gaps, not hypotheticals:
 - `github/repos` is not implemented in the .NET API yet; the projects page shows
   its empty state until it is. The GitHub token lives on the API — never put one
   in the frontend environment.
+- The dashboard gate is UI-only: portfolio reads stay anonymous on the server
+  and the JWT is a shared service token, not a user identity. The token is
+  pasted at runtime and never committed.
 - Blog intentionally has no pagination, search, or excerpts.
 - `scripts/genenv.js` requires `.env` (`dotenv` is explicit); running
   `npm run build` rewrites `src/environments/*.ts`.
