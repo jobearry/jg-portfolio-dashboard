@@ -50,3 +50,4 @@ remain in git history. For what is true now, read
 | 041 | Résumé redesign: public shell and landing page |
 | 042 | Résumé redesign: projects page |
 | 043 | Redesign QA, API model alignment, and cleanup |
+| 044 | JWT dashboard gate: token dialog, validation, guard, and lock control |

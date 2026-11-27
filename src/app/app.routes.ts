@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 import { site } from './core/config/site.config';
 
 const page = (label: string) => ({
@@ -27,6 +28,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/dashboard/shell/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
     title: `Dashboard | ${site.profile.name}`,
     children: [
       {

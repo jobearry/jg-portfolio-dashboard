@@ -13,8 +13,11 @@ Live screens: how they're reached, what they render, data source, interactions.
 - Content: centered `max-w-[75rem]`, `p-3`, inside `<main>`.
 - Active link: `routerLinkActive` exact + `aria-current="page"`.
 - Avatar dropdown: **View profile** (`/`), **Download CV** (new tab), theme
-  toggle. Keyboard + outside click handled; focus returns to trigger.
+  toggle, **Lock dashboard** (clears the JWT, returns to `/`). Keyboard + outside
+  click handled; focus returns to trigger.
 - Theme: stored choice / `prefers-color-scheme`, applied pre-paint.
+- **Access:** `authGuard` on the shell route sends visitors without a stored JWT
+  back to `/`. Direct `/dashboard`, `/timeline`, and `/blog` URLs are gated too.
 
 ---
 
@@ -88,7 +91,8 @@ parked, unrouted, source retained.
   Certifications (HackerRank labels), Tech stack (category grid, master order,
   **View more/Show less**), Recent projects (top 3 repos).
 - **Contact:** **Send email** (`mailto:`), **Download CV**, **View GitHub**,
-  **View dashboard**.
+  **View dashboard** (plain link; the guard returns here without a token — use
+  the header icon to unlock).
 - **Data states:** Timeline, tech stack, recent projects each show loading /
   empty / retryable error.
 - **Interactions:** fragment links scroll to anchors; theme toggle via
@@ -112,6 +116,25 @@ parked, unrouted, source retained.
 
 ---
 
-## 7. Fallback
+## 7. Dashboard gate (token dialog)
 
-Unknown child path → `redirectTo: "dashboard"`.
+**Files:** `features/resume/components/dashboard-link/{dashboard-link.ts,dashboard-link.html}`,
+`core/auth/{auth-token-store,auth.service,auth.interceptor,auth.guard}`
+
+- **Trigger:** dashboard icon in `ResumeHeader` on both public pages.
+- **Dialog:** password input, **Unlock** / **Cancel**, close button, Escape,
+  overlay click; focus moves to the input on open and back to the trigger on
+  close. `role="dialog"` + `aria-modal="true"`.
+- **Submit:** pasted JWT is trimmed, sent as a Bearer token to `GET v1/auth/me`,
+  saved in `sessionStorage` on success, then routes to `/dashboard`. Rejection
+  clears the token and shows a `role="alert"` message; the dialog stays open.
+- **Direct URLs:** `authGuard` redirects `/dashboard`, `/timeline`, and `/blog`
+  to `/` when no token is stored.
+- **Exit:** **Lock dashboard** in the user menu clears the token and returns to
+  `/`.
+
+---
+
+## 8. Fallback
+
+Unknown child path → `redirectTo: "dashboard"` (then `authGuard` applies).

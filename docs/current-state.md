@@ -1,6 +1,7 @@
 # Current State
 
-Angular SPA after the Tailwind rewrite (002–008). Read-only; no server code.
+Angular SPA after the Tailwind rewrite (002–008). Read-only data, JWT-gated
+dashboard; no server code in this repository.
 
 ## Stack
 
@@ -23,16 +24,16 @@ src/main.ts → App → app.routes.ts
   /            → Home (public résumé, no shell)
   /projects    → Projects (public, no shell)
   /profile     → redirect to /
-  ""           → Dashboard shell
+  ""           → Dashboard shell (authGuard → / when no token)
       dashboard → Overview
       timeline  → Timeline
       blog      → Blog
       **        → dashboard
 ```
 
-`app.config.ts` registers `provideHttpClient(withFetch())`, the router (anchor
-scrolling + 16px offset), and a `ThemeService` initializer. No global state,
-interceptors, retries, or guards. Icons are registered per component.
+`app.config.ts` registers `provideHttpClient(withFetch(), withInterceptors([authInterceptor]))`,
+the router (anchor scrolling + 16px offset), and a `ThemeService` initializer.
+Icons are registered per component. There are no retries or timeouts.
 
 ## Routes
 
@@ -40,7 +41,7 @@ interceptors, retries, or guards. Icons are registered per component.
 |---|---|---|---|
 | `""` full | Home (résumé) | `Jonathan Golimlim \| Software Engineer` | Public, no shell |
 | `projects` | Projects (résumé) | `Projects \| Jonathan Golimlim` | Public, no shell |
-| `""` | Dashboard shell | `Dashboard \| Jonathan Golimlim` | Always mounted |
+| `""` | Dashboard shell | `Dashboard \| Jonathan Golimlim` | `authGuard`; redirects to `/` without a token |
 | `dashboard` | Overview | `Dashboard \| Jonathan Golimlim` | Default |
 | `timeline` | Timeline | `Timeline \| Jonathan Golimlim` | |
 | `profile` | redirect → `""` | — | Legacy URL |
@@ -64,8 +65,9 @@ close), `shell-state.service.ts` (signals + scroll lock), `sidebar/`, `header/`,
 - Footer holds only the desktop collapse control (16rem ↔ 4.5rem, persisted in
   `localStorage`). Mobile: off-canvas 18rem panel below `md`, overlay, Escape,
   scroll lock, focus return.
-- Avatar dropdown: **View profile** (`/`), **Download CV**, theme toggle.
-  Keyboard and outside-click handling included.
+- Avatar dropdown: **View profile** (`/`), **Download CV**, theme toggle,
+  **Lock dashboard** (clears the JWT and returns to `/`). Keyboard and
+  outside-click handling included.
 
 Shared UI in `src/app/shared/ui/`: `page-header`, `state-message` (error/empty
 with **Try again**), `skeleton` (text/card/list/grid/entries, `role="status"`).
@@ -81,8 +83,24 @@ menu, overview, blog, résumé services.
 
 ### ApiClient — `core/api/api-client.ts`
 
-`environment.portfolioApi` base URL, GET only, JSON, `firstValueFrom`. No
-interceptors, retries, timeouts, or error mapping.
+`environment.portfolioApi` base URL, GET only, JSON, `firstValueFrom`. The
+`authInterceptor` adds `Authorization: Bearer <token>` when a JWT is stored.
+No retries, timeouts, or error mapping.
+
+### Auth — `core/auth/`
+
+- `AuthTokenStore` — the only token state: signal + `sessionStorage`
+  (`portfolio-admin-token`). Deliberately has no HTTP dependency so the
+  interceptor can read it without a DI cycle.
+- `AuthService.verify(token)` — trims, stores, calls `GET v1/auth/me`, then sets
+  `status` to `authenticated` or clears the token and sets `error` on failure.
+  `clear()` and `clearError()` reset state.
+- `authInterceptor` — attaches the Bearer header to every request when a token
+  exists.
+- `authGuard` — applied to the dashboard shell route; redirects to `/` when no
+  token is stored.
+- Registration is **out of band**: the app never calls `POST v1/auth/login`.
+  The JWT is obtained manually and pasted into the dashboard-link dialog.
 
 ### Services
 
@@ -106,9 +124,11 @@ interceptors, retries, timeouts, or error mapping.
 | `v1/experience?includeProjects=false` | Dashboard Timeline, Résumé Home | `ExperienceTimeline[]` |
 | `v1/skill` | Résumé Home | `TechStackItem[]` |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
+| `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
 Legacy (`v1/portfolio/count`, `v1/portfolio/projects`,
-`v1/experience/{id}/projects`) are unused. The GitHub token lives on the API.
+`v1/experience/{id}/projects`) are unused. `v1/auth/login` is called manually
+outside the app, not by any service. The GitHub token lives on the API.
 
 ### Models — `features/dashboard/core/models/`
 
@@ -119,6 +139,8 @@ Legacy (`v1/portfolio/count`, `v1/portfolio/projects`,
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
 - `GithubRepo { id, name, fullName, htmlUrl, description, language, topics }` (`features/resume/core/models/`)
+- `AuthClaims { sub, role, nbf, exp, iat, iss, aud }` — every claim is a
+  `string[]`, including the JWT timestamps
 
 ## Assets and environment
 
@@ -145,11 +167,13 @@ Legacy (`v1/portfolio/count`, `v1/portfolio/projects`,
 - [x] Timeline cards (brand year badge, role, responsibility, nested projects).
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
+- [x] JWT gate: pasted token, `/auth/me` validation, route guard, Bearer header,
+  session storage, lock control.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: forms, CRUD, auth, search/filter/pagination, live dialogs, toasts,
-analytics, i18n.
+Not present: CRUD writes, in-app login/registration, search/filter/pagination,
+toasts, analytics, i18n.
 
 ## Removed in 008
 

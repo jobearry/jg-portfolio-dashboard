@@ -1,7 +1,8 @@
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideMoon, lucideSun, lucideUser } from '@ng-icons/lucide';
+import { lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser } from '@ng-icons/lucide';
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../../core/auth/auth.service';
 import { site } from '../../../../core/config/site.config';
 import { ThemeService } from '../../../../core/theme/theme.service';
 import { ShellStateService } from '../shell-state.service';
@@ -9,7 +10,7 @@ import { ShellStateService } from '../shell-state.service';
 @Component({
   selector: 'app-user-menu',
   imports: [NgIcon, RouterLink],
-  providers: [provideIcons({ lucideDownload, lucideMoon, lucideSun, lucideUser })],
+  providers: [provideIcons({ lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser })],
   host: {
     '(document:pointerdown)': 'onDocumentPointerDown($event)',
     '(document:keydown.escape)': 'onDocumentEscape()',
@@ -84,6 +85,16 @@ import { ShellStateService } from '../shell-state.service';
             <ng-icon [name]="themeIcon()" size="16" />
             {{ themeLabel() }}
           </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            class="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
+            (click)="lockDashboard()"
+          >
+            <ng-icon name="lucideLogOut" size="16" />
+            Lock dashboard
+          </button>
         </div>
       }
     </div>
@@ -93,6 +104,8 @@ export class UserMenu {
   protected readonly site = site;
   protected readonly theme = inject(ThemeService);
 
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly shell = inject(ShellStateService);
   private readonly host = inject(ElementRef) as ElementRef<HTMLElement>;
 
@@ -135,6 +148,13 @@ export class UserMenu {
   protected navigateToProfile(): void {
     this.close();
     this.shell.closeMobile();
+  }
+
+  protected lockDashboard(): void {
+    this.auth.clear();
+    this.close();
+    this.shell.closeMobile();
+    void this.router.navigate(['/']);
   }
 
   protected onTriggerArrowDown(event: Event): void {

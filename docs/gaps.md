@@ -41,6 +41,25 @@ Open items only. Resolved work is in
   `v1/github/owner/{username}/repositories` (+`/count`). The token stays on the
   API; never put it in the frontend environment.
 
+## Auth gate
+
+- The gate protects the **view only**: portfolio, Notion, and GitHub reads are
+  anonymous by design. Only `/auth/me` and `/admin/*` require the JWT on the
+  server. Real access control needs a backend change.
+- The JWT is a shared service token (`sub=portfolio-api`, `role=Admin`), not a
+  user identity. Anyone holding it has admin access.
+- Login is manual: the app never calls `/auth/login`. Tokens expire in ~60
+  minutes; an expired token still passes the guard after a reload until a
+  request fails. There is no global 401 handler — data screens show their
+  error state, and **Lock dashboard** clears the token.
+- The token is held in `sessionStorage` and sent on every request. No runtime
+  claim/role checks are performed in the frontend.
+- The Contact section's **View dashboard** CTA is still a plain `routerLink`;
+  with no token the guard sends it back to `/` without opening the token dialog.
+  The header icon is the supported unlock entry point.
+- The token dialog has no focus trap: Escape and focus return work, but Tab can
+  reach background content.
+
 ## Resume import (020)
 
 - Heatmap, ECharts wrapper, and commits pipeline were dropped (unreachable in
