@@ -4,20 +4,20 @@
 
 ## Requirement
 
-`.github/docs/` records the **current state** of the application. It is not a
+`docs/` records the **current state** of the application. It is not a
 planning area and not a rulebook.
 
 - Use the AI harness's planning facility for task plans; do not copy routine
   task plans into the repository.
 - A persistent repository plan, when explicitly needed, lives in
   `.github/plans/plan.md`. Past implementation plans are summarized in
-  `.github/docs/implementation-history.md`.
-- Agent/contributor rules go in `.github/rules/` (this file).
-- Current behavior, architecture, and known issues go in `.github/docs/`.
+  `docs/implementation-history.md`.
+- Agent/contributor rules go in `.opencode/rules/` (this file).
+- Current behavior, architecture, and known issues go in `docs/`.
 
 ## Keeping docs accurate
 
-Update `.github/docs/` in the same change whenever any of these change:
+Update `docs/` in the same change whenever any of these change:
 
 - routes or navigation flow
 - screen layout, content, or interactions
@@ -27,7 +27,7 @@ Update `.github/docs/` in the same change whenever any of these change:
 - environment variables, build steps, or deployment behavior
 - known bugs, dead code, or technical debt
 
-Stale docs are a defect. If a change makes a statement in `.github/docs/`
+Stale docs are a defect. If a change makes a statement in `docs/`
 untrue, the change is not complete.
 
 ## Writing rules
@@ -36,7 +36,7 @@ untrue, the change is not complete.
 - Use the source of truth: read the code before editing docs.
 - Include file paths for every claim so readers can verify.
 - State gaps and risks explicitly; do not hide them.
-- Do not add a README to `.github/docs/`. `AGENTS.md` is the entry point and
+- Do not add a README to `docs/`. `AGENTS.md` is the entry point and
   lists the documents.
 - Keep documents focused:
   - `current-state.md` — architecture, routing, data layer, endpoints, models

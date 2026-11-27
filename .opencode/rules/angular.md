@@ -47,8 +47,8 @@
 - Always provide a stable `track` expression in `@for`.
 - Do not nest interactive elements (for example `<button>` inside `<button>` or
   a link inside a button).
-- Keep accessibility first: landmark elements (`nav`, `main`, `section`),
-  logical heading order, `aria-label` on icon-only controls, and visible
+- Keep accessibility first: landmark elements (`nav`, `main`, `section`), logical
+  heading order, `aria-label` on icon-only controls, and visible
   `:focus-visible` states.
 
 ## Component hygiene

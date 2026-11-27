@@ -18,9 +18,9 @@
 ## Process
 
 - [ ] Use the AI harness's planning facility for substantial work when useful
-      or requested; do not create a repository plan for every change.
-- [ ] `.github/docs/` is updated if routes, endpoints, models, UI behavior, or
-      tooling changed.
+  or requested; do not create a repository plan for every change.
+- [ ] `docs/` is updated if routes, endpoints, models, UI behavior, or
+  tooling changed.
 
 ## Anti-patterns
 
