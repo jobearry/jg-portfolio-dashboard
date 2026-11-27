@@ -1,24 +1,36 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { CreateProjectRequest } from '../../../../core';
+import { Skeleton } from '../../../../../../shared';
+import {
+  CreateProjectRequest,
+  CreateProjectWithStacksRequest,
+  TechStackItem,
+} from '../../../../core';
+import { StackPicker } from '../stack-picker/stack-picker';
 
 type Field = keyof CreateProjectRequest;
 
 /** Basic create form for a project attached to an experience. */
 @Component({
   selector: 'app-project-form',
+  imports: [Skeleton, StackPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project-form.html',
 })
 export class ProjectForm {
   readonly busy = input(false);
   readonly error = input<string | null>(null);
+  readonly stacks = input<TechStackItem[]>([]);
+  readonly stacksLoading = input(false);
+  readonly stackError = input<string | null>(null);
 
-  readonly saved = output<CreateProjectRequest>();
+  readonly saved = output<CreateProjectWithStacksRequest>();
   readonly cancelled = output<void>();
+  readonly retryStacks = output<void>();
 
   protected readonly projectName = signal('');
   protected readonly description = signal('');
   protected readonly contribution = signal('');
+  protected readonly selectedStackIds = signal<number[]>([]);
 
   protected readonly canSave = computed(() => !!this.projectName().trim() && !this.busy());
 
@@ -48,7 +60,12 @@ export class ProjectForm {
       projectName: this.optional(this.projectName()),
       description: this.optional(this.description()),
       contribution: this.optional(this.contribution()),
+      techStackIds: this.selectedStackIds(),
     });
+  }
+
+  protected onSelected(ids: number[]): void {
+    this.selectedStackIds.set(ids);
   }
 
   protected cancel(): void {

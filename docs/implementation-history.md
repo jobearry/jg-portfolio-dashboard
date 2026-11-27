@@ -54,3 +54,4 @@ remain in git history. For what is true now, read
 | 045 | `exp`-based session expiry, 401 handling, auto-reopened gate, countdown |
 | 046 | JWT-gated experience add/edit modal, mapped DTO writes, timeline card refresh |
 | 047 | Per-experience projects modal, basic project creation, nested project mapping |
+| 048 | Grouped/searchable stack picker, stack catalog read, and project stack replacement |

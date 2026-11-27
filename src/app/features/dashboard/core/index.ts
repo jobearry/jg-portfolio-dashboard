@@ -7,5 +7,8 @@ export * from './models/experience-write';
 export * from './models/experience.mapper';
 export * from './models/project-write';
 export * from './models/project.mapper';
+export * from './models/techstack-write';
+export * from './models/techstack.mapper';
 export * from './models/problem-details';
 export * from './services/experience-admin.service';
+export * from './services/project-stack.service';

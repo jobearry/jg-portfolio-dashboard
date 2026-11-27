@@ -123,9 +123,10 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
   are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
   `ExperienceSignalService`, `ExperienceAdminService` (mapped reload + admin
-  writes), `SkillsSignalService`, `RecommendationService`,
-  `GithubCountSignalService`, `NotionCountSignalService`,
-  `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
+  writes), `ProjectStackService` (stack catalog + project stack replacement),
+  `SkillsSignalService`, `RecommendationService`, `GithubCountSignalService`,
+  `NotionCountSignalService`, `GithubRepoSignalService`,
+  `ResumeProjectSignalService`, `NotionSignalService`.
 
 ### Live endpoints
 
@@ -141,7 +142,8 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `POST v1/admin/experience` | Timeline add form | `ExperienceDto` (Bearer required) |
 | `PUT v1/admin/experience/{id}` | Timeline edit form | `ExperienceDto` (Bearer required) |
 | `POST v1/admin/experience/{experienceId}/project` | Timeline add-project form | `ProjectDto` (Bearer required) |
-| `v1/skill` | Résumé Home | `TechStackItem[]` |
+| `v1/skill` | Résumé Home, timeline stack picker | `TechStackItem[]` |
+| `PUT v1/admin/project/{id}/tech-stacks` | Timeline Manage stacks / add-with-stacks | `ProjectDto` (Bearer required) |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
@@ -163,8 +165,14 @@ outside the app, not by any service. The GitHub token lives on the API.
 - `Project { id, projectName, description, contribution, techStacks? }`
 - `CreateProjectRequest { projectName, description, contribution }` — nullable
   payload accepted by `POST v1/admin/experience/{experienceId}/project`.
+- `CreateProjectWithStacksRequest` — `CreateProjectRequest` plus `techStackIds`;
+  emitted by the add-project form. The form POST sends the whole payload and
+  uses `techStackIds` for a follow-up stack replacement when non-empty.
+- `ReplaceProjectTechStacksRequest { techStackIds }` — body of the stack PUT.
 - `ProjectDto` — nullable API response for a project; `ProjectMapper.fromDto`
-  maps it to `Project` with safe defaults. Tech stacks are read-only for now.
+  maps it to `Project` with safe defaults, including nested `TechStackDto[]`.
+- `TechStackDto` — nullable API form of a stack, mapped by
+  `TechStackMapper.fromDto` into `TechStackItem`.
 - `TechStackItem { id, stackName, imgSrc, category }`
 - `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
@@ -200,9 +208,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   longer rendered inline.
 - [x] JWT-gated timeline add/edit modal; reloads the list after save and shows
   `400`/`404`/`503` errors in the form (`401` stays with the auth interceptor).
-- [x] Per-experience projects modal with loading/empty/error/list states and a
-  basic Add project form; tech stacks are displayed only, and a stack picker is
-  deferred.
+- [x] Per-experience projects modal with loading/empty/error/list states, an Add
+  project form with an optional grouped/searchable existing-stack picker, and a
+  per-project Manage stacks panel. Stack writes use one PUT replacement per save;
+  stacks are shown on each project row.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -210,8 +219,9 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: delete UI, writes for entities other than experience, in-app
-login/registration, search/filter/pagination, toasts, analytics, i18n.
+Not present: delete UI, writes for entities other than experience and project
+stack links, stack/category creation UI, in-app login/registration,
+search/filter/pagination, toasts, analytics, i18n.
 
 ## Removed in 008
 

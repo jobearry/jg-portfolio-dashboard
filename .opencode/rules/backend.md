@@ -9,11 +9,13 @@ is a separate codebase; this repository contains no server code.
   `scripts/genenv.js`). Never hardcode the API host in code.
 - The app is **read-only for reads**: entity reads are GET. The explicit
   exceptions are JWT-gated experience add/edit on `/timeline` (`POST`/`PUT
-  v1/admin/experience[/…]`), approved in implementation history 046, and
-  JWT-gated project creation from the experience projects modal (`POST
+  v1/admin/experience[/…]`), approved in implementation history 046; JWT-gated
+  project creation from the experience projects modal (`POST
   v1/admin/experience/{experienceId}/project`), approved in implementation
-  history 047. Do not build other CRUD UI without an explicit decision. Auth
-  validation is also a GET, with a Bearer token.
+  history 047; and project stack replacement from that modal (`PUT
+  v1/admin/project/{id}/tech-stacks`), approved in implementation history 048.
+  Do not build other CRUD UI without an explicit decision. Auth validation is
+  also a GET, with a Bearer token.
 - Live endpoints:
   - `GET v1/overview`
   - `GET v1/github/owner/{username}/repositories/count`
@@ -30,6 +32,8 @@ is a separate codebase; this repository contains no server code.
   - `PUT v1/admin/experience/{id}` — Bearer token required; `ExperienceDto`
   - `POST v1/admin/experience/{experienceId}/project` — Bearer token required;
     `CreateProjectRequest` returns `ProjectDto`
+  - `PUT v1/admin/project/{id}/tech-stacks` — Bearer token required;
+    `ReplaceProjectTechStacksRequest { techStackIds }` returns `ProjectDto`
 - `POST v1/auth/login` is **not called by the frontend**. The admin JWT is
   obtained manually and pasted into the dashboard gate. Client-side expiry from
   `exp` is session UX only; the server remains the authority on validity.

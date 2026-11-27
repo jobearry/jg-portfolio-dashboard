@@ -56,6 +56,10 @@ describe('Timeline', () => {
     element.querySelector('form')?.dispatchEvent(new Event('submit', { bubbles: true }));
   }
 
+  function flushCatalog(): void {
+    http.expectOne(`${environment.portfolioApi}/v1/skill`).flush([]);
+  }
+
   it('renders the start year only when the date is valid', async () => {
     const element = await render([base, { ...base, id: 2, startedAt: 'not-a-date' }]);
     const year = element.querySelector('.tabular-nums');
@@ -180,6 +184,7 @@ describe('Timeline', () => {
       element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
     ).click();
     fixture.detectChanges();
+    flushCatalog();
 
     expect(element.querySelector('[role="dialog"]')?.textContent).toContain('Projects at Acme');
 
@@ -198,6 +203,7 @@ describe('Timeline', () => {
       element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
     ).click();
     fixture.detectChanges();
+    flushCatalog();
     http.expectOne(`${environment.portfolioApi}/v1/experience/1`).flush({ ...base, projects: [] });
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
@@ -216,6 +222,7 @@ describe('Timeline', () => {
       element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
     ).click();
     fixture.detectChanges();
+    flushCatalog();
     http
       .expectOne(`${environment.portfolioApi}/v1/experience/1`)
       .flush({}, { status: 401, statusText: 'Unauthorized' });

@@ -42,12 +42,15 @@ Live screens: how they're reached, what they render, data source, interactions.
 
 **Files:** `features/dashboard/pages/timeline/timeline.ts`,
 `components/experience-form/{ts,html}`,
-`components/experience-projects/{ts,html}`, `components/project-form/{ts,html}`
+`components/experience-projects/{ts,html}`, `components/project-form/{ts,html}`,
+`components/stack-picker/{ts,html}`
 
 - **Data:** `v1/experience?includeProjects=false` → nullable `ExperienceDto[]`,
   mapped by `ExperienceMapper.fromDto` to `ExperienceTimeline[]`. The projects
-  modal fetches one experience with `v1/experience/{id}` and creates projects
-  with `POST v1/admin/experience/{experienceId}/project`.
+  modal fetches one experience with `v1/experience/{id}`, the stack catalog with
+  `v1/skill`, creates projects with
+  `POST v1/admin/experience/{experienceId}/project`, and replaces stack links
+  with `PUT v1/admin/project/{id}/tech-stacks`.
 - **Order:** `startedAt` newest first; invalid dates after valid ones.
 - **States:** `app-skeleton` (`text` + `list`) while loading; shared error block
   with **Try again**; empty message when no experience.
@@ -73,14 +76,26 @@ Live screens: how they're reached, what they render, data source, interactions.
   - Each card's **View projects** button opens a modal titled
     `Projects at {company}` with loading skeleton, empty state, error retry, and
     project names/descriptions/contributions/tech chips. Close or `401` closes
-    the modal; `401` remains with the auth interceptor.
+    the modal; `401` remains with the auth interceptor. The modal also loads the
+    `v1/skill` catalog and shows its own retryable alert if that read fails.
   - The modal's **Add project** form saves `projectName` (required),
     `description`, and `contribution` to
     `POST v1/admin/experience/{experienceId}/project`, then reloads the modal
-    data. `400`/`404`/`503` appear in a form alert; tech stacks are read-only
-    and a stack picker is deferred.
-  - Projects and `durationMonths` are not editable in the experience form.
-    Delete is not implemented.
+    data. It also offers an optional **Tech stacks** picker: existing stacks
+    grouped by category with search, selected chips, and remove/clear controls.
+    When stacks are chosen, one `PUT v1/admin/project/{id}/tech-stacks` saves
+    all IDs after the project is created; no PUT is sent for an empty selection.
+    `400`/`404`/`503` appear in a form alert. If the POST succeeds but the PUT
+    fails, the form closes, the list reloads, and a notice asks the user to use
+    **Manage stacks** on the new project.
+  - Each project row has a **Manage stacks** action
+    (`aria-label="Manage stacks for {projectName}"`) that opens an inline panel
+    with the same picker prefilled from the project's stacks. **Save stacks**
+    replaces the set with one PUT and updates that row from the returned DTO;
+    failures show an alert inside the panel.
+  - No stack or category creation UI exists; the catalog is read from
+    `v1/skill`. Projects and `durationMonths` are not editable in the experience
+    form. Delete is not implemented.
 
 ---
 

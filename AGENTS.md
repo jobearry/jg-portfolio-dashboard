@@ -13,11 +13,11 @@ About, timeline, certifications, Recent Projects, and Technical Stack;
 `/projects` shows client-project cards and the full GitHub repository list.
 The dashboard lives under `/dashboard` and provides an overview, career
 timeline, and a Notion-backed blog. Data access is **read-only except for the
-JWT-gated experience add/edit and per-experience project creation actions on
-`/timeline`**. The dashboard is gated
+JWT-gated experience add/edit, per-experience project creation, and project
+stack replacement actions on `/timeline`**. The dashboard is gated
 by a JWT that the visitor pastes into the header dialog; the public résumé pages
 stay open. The timeline also supports JWT-gated per-experience project creation
-from a **View projects** modal.
+and stack editing from a **View projects** modal.
 
 Angular SPA that consumes an external **C# / .NET REST API**; no server code
 lives in this repository.
@@ -119,9 +119,9 @@ These are real constraints and intentional gaps, not hypotheticals:
   its empty state until it is. The GitHub token lives on the API — never put one
   in the frontend environment.
 - The dashboard gate is UI-only for reads: portfolio reads stay anonymous on the
-  server, while the admin experience and project write endpoints require the JWT.
-  The JWT is a shared service token, not a user identity. It is pasted at
-  runtime and never committed.
+  server, while the admin experience, project, and project-stack write endpoints
+  require the JWT. The JWT is a shared service token, not a user identity. It is
+  pasted at runtime and never committed.
 - Blog intentionally has no pagination, search, or excerpts.
 - `scripts/genenv.js` requires `.env` (`dotenv` is explicit); running
   `npm run build` rewrites `src/environments/*.ts`.
