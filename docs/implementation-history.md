@@ -55,3 +55,4 @@ remain in git history. For what is true now, read
 | 046 | JWT-gated experience add/edit modal, mapped DTO writes, timeline card refresh |
 | 047 | Per-experience projects modal, basic project creation, nested project mapping |
 | 048 | Grouped/searchable stack picker, stack catalog read, and project stack replacement |
+| 049 | Flat search-only picker; project add/edit with fields-only writes; icon-only edit action |

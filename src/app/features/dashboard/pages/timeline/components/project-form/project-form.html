@@ -33,25 +33,6 @@
     ></textarea>
   </div>
 
-  <section class="flex flex-col gap-2 border-t border-border pt-4">
-    <h4 class="text-sm font-semibold">Tech stacks</h4>
-    <p class="text-xs text-muted-foreground">
-      Optional. Choose from the existing tech stacks; new stacks are created elsewhere.
-    </p>
-    @if (stacksLoading()) {
-      <app-skeleton variant="list" [rows]="3" />
-    } @else {
-      <app-stack-picker
-        [stacks]="stacks()"
-        [selectedIds]="selectedStackIds()"
-        [busy]="busy()"
-        [error]="stackError()"
-        (selectionChange)="onSelected($event)"
-        (retry)="retryStacks.emit()"
-      />
-    }
-  </section>
-
   @if (error()) {
     <p role="alert" class="text-sm text-destructive">{{ error() }}</p>
   }
@@ -67,7 +48,7 @@
     <button
       type="submit"
       [disabled]="!canSave()"
-      class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     >
       Save project
     </button>

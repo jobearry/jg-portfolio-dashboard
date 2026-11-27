@@ -20,13 +20,15 @@ Open items only. Resolved work is in
 - Add/edit are implemented; delete is deferred despite the API exposing it.
 - `projects` and server-derived `durationMonths` are read-only in the experience
   form. Projects are created from the per-experience modal instead.
-- Stack selection is limited to existing `v1/skill` entries; there is no
+- Project edit is implemented for name/description/contribution; project delete
+  is not, even though the API exposes it.
+- Stacks on project rows are read-only. Neither add nor edit writes stack links;
+  `ProjectStackService` and the flat search-only `StackPicker` are kept unwired
+  for the planned stack-editing work (owner: timeline feature). There is no
   stack/category creation UI.
-- Project creation is not atomic with stack linking: if the POST succeeds but
-  `PUT .../tech-stacks` fails, the user sees a partial-success notice and must
-  retry from **Manage stacks**.
-- There is no project edit/delete UI for name/description/contribution, even
-  though the API exposes update and delete operations.
+- The search picker no longer groups by category; category browsing is deferred.
+- The edit form hides stack controls rather than offering controls whose changes
+  would be discarded.
 - No field-level validation messages: required fields only disable **Save**, and
   server `ProblemDetails` is reduced to `detail ?? title ??` a status-based
   fallback through `getErrorMessage`.

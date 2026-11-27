@@ -2,12 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { StateMessage } from '../../../../../../shared';
 import { TechStackItem } from '../../../../core';
 
-interface StackGroup {
-  category: string;
-  stacks: TechStackItem[];
-}
-
-/** Searchable, grouped checkbox picker for a project's existing tech stacks. */
+/** Searchable checkbox picker over the existing tech-stack catalog. */
 @Component({
   selector: 'app-stack-picker',
   imports: [StateMessage],
@@ -30,29 +25,13 @@ export class StackPicker {
     return this.stacks().filter((stack) => selected.has(stack.id));
   });
 
-  protected readonly groups = computed<StackGroup[]>(() => {
+  protected readonly filteredStacks = computed(() => {
     const term = this.search().trim().toLowerCase();
-    const grouped = new Map<string, TechStackItem[]>();
-
-    for (const stack of this.stacks()) {
-      const matches =
-        !term ||
-        stack.stackName.toLowerCase().includes(term) ||
-        stack.category.toLowerCase().includes(term);
-
-      if (!matches) {
-        continue;
-      }
-
-      const category = stack.category || 'Other';
-      const items = grouped.get(category) ?? [];
-      items.push(stack);
-      grouped.set(category, items);
+    if (!term) {
+      return this.stacks();
     }
 
-    return [...grouped.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([category, stacks]) => ({ category, stacks }));
+    return this.stacks().filter((stack) => stack.stackName.toLowerCase().includes(term));
   });
 
   protected isSelected(id: number): boolean {

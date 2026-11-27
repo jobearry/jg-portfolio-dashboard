@@ -9,11 +9,6 @@ export interface CreateProjectRequest {
 
 export type UpdateProjectRequest = CreateProjectRequest;
 
-/** Create payload extended with the stack IDs chosen in the projects modal. */
-export interface CreateProjectWithStacksRequest extends CreateProjectRequest {
-  techStackIds: number[];
-}
-
 /** Body accepted by `PUT v1/admin/project/{id}/tech-stacks`. */
 export interface ReplaceProjectTechStacksRequest {
   techStackIds: number[] | null;

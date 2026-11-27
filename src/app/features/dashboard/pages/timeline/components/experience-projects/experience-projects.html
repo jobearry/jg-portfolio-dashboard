@@ -26,13 +26,23 @@
       </button>
     </div>
 
-    @if (notice()) {
-      <p role="status" class="mt-4 rounded-md border border-border bg-muted/40 p-3 text-sm">
-        {{ notice() }}
-      </p>
-    }
-
-    @if (adding()) {
+    @if (editingProject(); as project) {
+      <div class="mt-5">
+        <h3 class="text-base font-semibold">Edit project</h3>
+        <p class="mt-1 text-sm text-muted-foreground">
+          Update the details for {{ project.projectName }}.
+        </p>
+        <div class="mt-4">
+          <app-project-form
+            [project]="project"
+            [busy]="saving()"
+            [error]="formError()"
+            (saved)="saveEdit($event)"
+            (cancelled)="closeForm()"
+          />
+        </div>
+      </div>
+    } @else if (adding()) {
       <div class="mt-5">
         <h3 class="text-base font-semibold">Add project</h3>
         <p class="mt-1 text-sm text-muted-foreground">
@@ -42,12 +52,8 @@
           <app-project-form
             [busy]="saving()"
             [error]="formError()"
-            [stacks]="stacks()"
-            [stacksLoading]="stacksLoading()"
-            [stackError]="stackError()"
             (saved)="add($event)"
-            (cancelled)="closeAdd()"
-            (retryStacks)="loadStacks()"
+            (cancelled)="closeForm()"
           />
         </div>
       </div>
@@ -80,11 +86,12 @@
                   <h3 class="text-base font-semibold">{{ project.projectName }}</h3>
                   <button
                     type="button"
-                    [attr.aria-label]="'Manage stacks for ' + project.projectName"
-                    class="rounded-md border border-border px-2 py-1 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                    (click)="manage(project)"
+                    [attr.aria-label]="'Edit project ' + project.projectName"
+                    title="Edit project"
+                    class="rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    (click)="openEdit(project)"
                   >
-                    Manage stacks
+                    <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
                   </button>
                 </div>
                 @if (project.description) {
@@ -107,44 +114,6 @@
                       </li>
                     }
                   </ul>
-                }
-
-                @if (managingId() === project.id) {
-                  <section
-                    class="mt-2 flex flex-col gap-3 border-t border-border pt-3"
-                    [attr.aria-label]="'Edit tech stacks for ' + project.projectName"
-                  >
-                    <h4 class="text-sm font-semibold">Tech stacks for {{ project.projectName }}</h4>
-                    <app-stack-picker
-                      [stacks]="stacks()"
-                      [selectedIds]="manageSelection()"
-                      [busy]="manageSaving()"
-                      [error]="stackError()"
-                      (selectionChange)="manageSelection.set($event)"
-                      (retry)="loadStacks()"
-                    />
-                    @if (manageError()) {
-                      <p role="alert" class="text-sm text-destructive">{{ manageError() }}</p>
-                    }
-                    <div class="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        [disabled]="manageSaving()"
-                        class="rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        (click)="closeManage()"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        [disabled]="manageSaving()"
-                        class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        (click)="saveManage()"
-                      >
-                        Save stacks
-                      </button>
-                    </div>
-                  </section>
                 }
               </li>
             }

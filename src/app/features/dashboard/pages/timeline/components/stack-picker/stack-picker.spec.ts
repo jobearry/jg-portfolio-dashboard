@@ -25,17 +25,13 @@ describe('StackPicker', () => {
     fixture = TestBed.createComponent(StackPicker);
   });
 
-  it('groups stacks by category', () => {
+  it('renders a flat list without category groups', () => {
     setInputs();
 
-    const legends = [...element().querySelectorAll('legend')].map((node) =>
-      node.textContent?.trim(),
-    );
-
-    expect(legends).toContain('Frontend');
-    expect(legends).toContain('Backend');
+    expect(element().querySelectorAll('legend')).toHaveLength(0);
     expect(element().textContent).toContain('Angular');
     expect(element().textContent).toContain('Spring');
+    expect(element().textContent).toContain('TypeScript');
   });
 
   it('filters stacks by the search term', () => {

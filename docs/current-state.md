@@ -123,10 +123,10 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
   are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
   `ExperienceSignalService`, `ExperienceAdminService` (mapped reload + admin
-  writes), `ProjectStackService` (stack catalog + project stack replacement),
-  `SkillsSignalService`, `RecommendationService`, `GithubCountSignalService`,
-  `NotionCountSignalService`, `GithubRepoSignalService`,
-  `ResumeProjectSignalService`, `NotionSignalService`.
+  writes for experiences and projects), `ProjectStackService` (stack catalog +
+  stack replacement, prepared but not called by the UI), `SkillsSignalService`,
+  `RecommendationService`, `GithubCountSignalService`, `NotionCountSignalService`,
+  `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
 
 ### Live endpoints
 
@@ -142,12 +142,14 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `POST v1/admin/experience` | Timeline add form | `ExperienceDto` (Bearer required) |
 | `PUT v1/admin/experience/{id}` | Timeline edit form | `ExperienceDto` (Bearer required) |
 | `POST v1/admin/experience/{experienceId}/project` | Timeline add-project form | `ProjectDto` (Bearer required) |
-| `v1/skill` | Résumé Home, timeline stack picker | `TechStackItem[]` |
-| `PUT v1/admin/project/{id}/tech-stacks` | Timeline Manage stacks / add-with-stacks | `ProjectDto` (Bearer required) |
+| `PUT v1/admin/project/{id}` | Timeline edit-project form | `ProjectDto` (Bearer required) |
+| `v1/skill` | Résumé Home | `TechStackItem[]` |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
-Legacy (`v1/portfolio/count`, `v1/portfolio/projects`,
+`PUT v1/admin/project/{id}/tech-stacks` is implemented in `ProjectStackService`
+but is not called by any current UI; project stack writes are deferred. Legacy
+(`v1/portfolio/count`, `v1/portfolio/projects`,
 `v1/experience/{id}/projects`) are unused. `v1/auth/login` is called manually
 outside the app, not by any service. The GitHub token lives on the API.
 
@@ -164,11 +166,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   `projects` are never written.
 - `Project { id, projectName, description, contribution, techStacks? }`
 - `CreateProjectRequest { projectName, description, contribution }` — nullable
-  payload accepted by `POST v1/admin/experience/{experienceId}/project`.
-- `CreateProjectWithStacksRequest` — `CreateProjectRequest` plus `techStackIds`;
-  emitted by the add-project form. The form POST sends the whole payload and
-  uses `techStackIds` for a follow-up stack replacement when non-empty.
-- `ReplaceProjectTechStacksRequest { techStackIds }` — body of the stack PUT.
+  payload for `POST v1/admin/experience/{experienceId}/project`; also used for
+  `PUT v1/admin/project/{id}` via the `UpdateProjectRequest` alias.
+- `ReplaceProjectTechStacksRequest { techStackIds }` — body of the stack PUT,
+  prepared for deferred stack editing.
 - `ProjectDto` — nullable API response for a project; `ProjectMapper.fromDto`
   maps it to `Project` with safe defaults, including nested `TechStackDto[]`.
 - `TechStackDto` — nullable API form of a stack, mapped by
@@ -208,10 +209,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   longer rendered inline.
 - [x] JWT-gated timeline add/edit modal; reloads the list after save and shows
   `400`/`404`/`503` errors in the form (`401` stays with the auth interceptor).
-- [x] Per-experience projects modal with loading/empty/error/list states, an Add
-  project form with an optional grouped/searchable existing-stack picker, and a
-  per-project Manage stacks panel. Stack writes use one PUT replacement per save;
-  stacks are shown on each project row.
+- [x] Per-experience projects modal with loading/empty/error/list states, an
+  Add project form (`POST`), and an icon-only per-project edit action opening
+  the same form prefilled (`PUT` of project fields only). Stack chips are
+  read-only; no stack writes are performed.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -219,9 +220,10 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: delete UI, writes for entities other than experience and project
-stack links, stack/category creation UI, in-app login/registration,
-search/filter/pagination, toasts, analytics, i18n.
+Not present: delete UI, project stack writes, stack/category creation UI,
+in-app login/registration, search/filter/pagination, toasts, analytics, i18n.
+The flat search-only `StackPicker` and `ProjectStackService` are retained but
+unwired for the planned stack-editing work.
 
 ## Removed in 008
 

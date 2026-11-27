@@ -30,15 +30,9 @@ describe('ExperienceProjects', () => {
     techStacks: [{ id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' }],
   };
 
-  const stackDtos = [
-    { id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' },
-    { id: 2, stackName: 'Spring', imgSrc: null, category: 'Backend' },
-  ];
-
   const loadUrl = `${environment.portfolioApi}/v1/experience/7`;
-  const catalogUrl = `${environment.portfolioApi}/v1/skill`;
   const createUrl = `${environment.portfolioApi}/v1/admin/experience/7/project`;
-  const replaceUrl = `${environment.portfolioApi}/v1/admin/project/9/tech-stacks`;
+  const updateUrl = `${environment.portfolioApi}/v1/admin/project/9`;
 
   function dtoWith(projects: ProjectDto[] | null): ExperienceDto {
     return {
@@ -68,41 +62,35 @@ describe('ExperienceProjects', () => {
     await tick();
   }
 
-  async function flushCatalog(): Promise<void> {
-    http.expectOne(catalogUrl).flush(stackDtos);
-    await tick();
-  }
-
   async function initialLoad(projects: ProjectDto[] | null): Promise<void> {
     fixture.detectChanges();
     await flushLoad(projects);
-    await flushCatalog();
   }
 
-  function fillAddForm(): void {
-    const name = input('project-name');
-    name.value = 'Portal';
-    name.dispatchEvent(new Event('input'));
-    const description = element().querySelector('#project-description') as HTMLTextAreaElement;
-    description.value = 'Internal dashboard';
-    description.dispatchEvent(new Event('input'));
-    const contribution = element().querySelector('#project-contribution') as HTMLTextAreaElement;
-    contribution.value = 'Frontend';
-    contribution.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-  }
-
-  function checkStack(id: number): void {
-    const checkbox = element().querySelector(
-      `input[type="checkbox"][value="${id}"]`,
-    ) as HTMLInputElement;
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
+  function fillForm(name: string, description: string, contribution: string): void {
+    const projectName = input('project-name');
+    projectName.value = name;
+    projectName.dispatchEvent(new Event('input'));
+    const descriptionInput = element().querySelector('#project-description') as HTMLTextAreaElement;
+    descriptionInput.value = description;
+    descriptionInput.dispatchEvent(new Event('input'));
+    const contributionInput = element().querySelector(
+      '#project-contribution',
+    ) as HTMLTextAreaElement;
+    contributionInput.value = contribution;
+    contributionInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
 
   function openAdd(): void {
     (element().querySelector('button[aria-label="Add project"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
+  function openEdit(): void {
+    (
+      element().querySelector('button[aria-label="Edit project Portal"]') as HTMLButtonElement
+    ).click();
     fixture.detectChanges();
   }
 
@@ -145,7 +133,6 @@ describe('ExperienceProjects', () => {
     fixture.detectChanges();
     http.expectOne(loadUrl).flush({}, { status: 503, statusText: 'Service Unavailable' });
     await tick();
-    await flushCatalog();
 
     expect(element().querySelector('[role="alert"]')?.textContent).toContain('503');
 
@@ -157,29 +144,11 @@ describe('ExperienceProjects', () => {
     expect(element().querySelector('[role="status"]')?.textContent).toContain('No projects yet');
   });
 
-  it('load_WhenCatalogFails_RendersPickerErrorAndRetries', async () => {
-    fixture.detectChanges();
-    await flushLoad([]);
-    http.expectOne(catalogUrl).flush({}, { status: 503, statusText: 'Service Unavailable' });
-    await tick();
-    openAdd();
-
-    expect(element().querySelector('[role="alert"]')?.textContent).toContain(
-      'Stacks could not be loaded.',
-    );
-
-    [...element().querySelectorAll('button')]
-      .find((button) => button.textContent?.includes('Try again'))
-      ?.click();
-    await flushCatalog();
-
-    expect(element().querySelector('#stack-search')).not.toBeNull();
-  });
-
-  it('add_WhenSubmitted_CreatesProjectWithoutUnnecessaryStackWrite', async () => {
+  it('add_WhenSubmitted_PostsOnlyTheProjectAndReloads', async () => {
     await initialLoad([]);
     openAdd();
-    fillAddForm();
+    expect(element().querySelector('#stack-search')).toBeFalsy();
+    fillForm('Portal', 'Internal dashboard', 'Frontend');
     submitForm();
 
     const post = http.expectOne(createUrl);
@@ -188,61 +157,14 @@ describe('ExperienceProjects', () => {
       projectName: 'Portal',
       description: 'Internal dashboard',
       contribution: 'Frontend',
-      techStackIds: [],
     });
     post.flush(projectDto);
     await tick();
-    http.expectNone(replaceUrl);
+    http.expectNone(updateUrl);
     await flushLoad([projectDto]);
 
     expect(element().textContent).toContain('Portal');
     expect(element().querySelector('#project-name')).toBeFalsy();
-  });
-
-  it('add_WhenStacksSelected_CreatesProjectAndReplacesStacks', async () => {
-    await initialLoad([]);
-    openAdd();
-    fillAddForm();
-    checkStack(1);
-    submitForm();
-
-    const post = http.expectOne(createUrl);
-    expect(post.request.body).toMatchObject({ techStackIds: [1] });
-    post.flush(projectDto);
-    await tick();
-
-    const put = http.expectOne(replaceUrl);
-    expect(put.request.method).toBe('PUT');
-    expect(put.request.body).toEqual({ techStackIds: [1] });
-    put.flush(projectDto);
-    await tick();
-    await flushLoad([projectDto]);
-
-    expect(element().textContent).toContain('Angular');
-    expect(element().querySelector('#project-name')).toBeFalsy();
-  });
-
-  it('add_WhenStackWriteFails_ShowsNoticeAndKeepsCreatedProject', async () => {
-    await initialLoad([]);
-    openAdd();
-    fillAddForm();
-    checkStack(1);
-    submitForm();
-
-    http.expectOne(createUrl).flush(projectDto);
-    await tick();
-    http
-      .expectOne(replaceUrl)
-      .flush(
-        { title: 'Bad Request', detail: 'Invalid stack.' },
-        { status: 400, statusText: 'Bad Request' },
-      );
-    await tick();
-    await flushLoad([projectDto]);
-
-    expect(element().querySelector('#project-name')).toBeFalsy();
-    expect(element().textContent).toContain('Project created, but tech stacks were not saved.');
-    expect(element().textContent).toContain('Portal');
   });
 
   it('add_WhenUnauthorized_EmitsUnauthorizedWithoutShowingFormError', async () => {
@@ -250,7 +172,7 @@ describe('ExperienceProjects', () => {
     fixture.componentInstance.unauthorized.subscribe(() => (unauthorized = true));
     await initialLoad([]);
     openAdd();
-    fillAddForm();
+    fillForm('Portal', '', '');
     submitForm();
 
     http.expectOne(createUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
@@ -263,7 +185,7 @@ describe('ExperienceProjects', () => {
   it('add_WhenApiRejects_ShowsFormErrorAndKeepsFormOpen', async () => {
     await initialLoad([]);
     openAdd();
-    fillAddForm();
+    fillForm('Portal', '', '');
     submitForm();
 
     http
@@ -280,38 +202,91 @@ describe('ExperienceProjects', () => {
     expect(element().querySelector('#project-name')).not.toBeNull();
   });
 
-  it('manage_WhenSaved_ReplacesStacksAndUpdatesTheProject', async () => {
+  it('renders an icon-only edit action with a tooltip', async () => {
     await initialLoad([projectDto]);
 
-    (
-      element().querySelector('button[aria-label="Manage stacks for Portal"]') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
+    const button = element().querySelector(
+      'button[aria-label="Edit project Portal"]',
+    ) as HTMLButtonElement;
 
-    const angular = element().querySelector(
-      'input[type="checkbox"][value="1"]',
-    ) as HTMLInputElement;
-    expect(angular.checked).toBe(true);
-    checkStack(2);
+    expect(button.textContent).not.toContain('Edit');
+    expect(button.title).toBe('Edit project');
+    expect(button.querySelector('ng-icon')).not.toBeNull();
+  });
 
-    [...element().querySelectorAll('button')]
-      .find((button) => button.textContent?.includes('Save stacks'))
-      ?.click();
-    fixture.detectChanges();
+  it('edit_OpensTheFormPrefilledWithTheProject', async () => {
+    await initialLoad([projectDto]);
+    openEdit();
 
-    const put = http.expectOne(replaceUrl);
-    expect(put.request.body).toEqual({ techStackIds: [1, 2] });
+    expect(input('project-name').value).toBe('Portal');
+    expect((element().querySelector('#project-description') as HTMLTextAreaElement).value).toBe(
+      'Internal dashboard',
+    );
+    expect((element().querySelector('#project-contribution') as HTMLTextAreaElement).value).toBe(
+      'Frontend',
+    );
+    expect(element().querySelector('#stack-search')).toBeFalsy();
+  });
+
+  it('edit_WhenSubmitted_PutsOnlyProjectFieldsAndUpdatesTheRow', async () => {
+    await initialLoad([projectDto]);
+    openEdit();
+    fillForm('Portal 2', 'Updated dashboard', 'Lead');
+    submitForm();
+
+    const put = http.expectOne(updateUrl);
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({
+      projectName: 'Portal 2',
+      description: 'Updated dashboard',
+      contribution: 'Lead',
+    });
     put.flush({
       ...projectDto,
-      techStacks: [
-        ...(projectDto.techStacks ?? []),
-        { id: 2, stackName: 'Spring', imgSrc: null, category: 'Backend' },
-      ],
+      projectName: 'Portal 2',
+      description: 'Updated dashboard',
+      contribution: 'Lead',
     });
     await tick();
 
-    expect(element().textContent).toContain('Spring');
-    expect(element().querySelector('#stack-search')).toBeFalsy();
+    expect(element().textContent).toContain('Portal 2');
+    expect(element().textContent).toContain('Updated dashboard');
+    expect(element().querySelector('#project-name')).toBeFalsy();
+  });
+
+  it('edit_WhenUnauthorized_EmitsUnauthorizedWithoutShowingFormError', async () => {
+    let unauthorized = false;
+    fixture.componentInstance.unauthorized.subscribe(() => (unauthorized = true));
+    await initialLoad([projectDto]);
+    openEdit();
+    fillForm('Portal 2', '', '');
+    submitForm();
+
+    http.expectOne(updateUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    await tick();
+
+    expect(unauthorized).toBe(true);
+    expect(element().querySelector('[role="alert"]')).toBeFalsy();
+  });
+
+  it('edit_WhenApiRejects_ShowsFormErrorAndKeepsFormOpen', async () => {
+    await initialLoad([projectDto]);
+    openEdit();
+    fillForm('Portal 2', '', '');
+    submitForm();
+
+    http
+      .expectOne(updateUrl)
+      .flush(
+        { title: 'Bad Request', detail: 'Project name is required.' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+    await tick();
+
+    expect(element().querySelector('[role="alert"]')?.textContent).toContain(
+      'Project name is required.',
+    );
+    expect(element().querySelector('#project-name')).not.toBeNull();
   });
 
   it('close_WhenCloseButtonClicked_EmitsCancelled', async () => {

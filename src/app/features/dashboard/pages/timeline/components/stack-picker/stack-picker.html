@@ -7,7 +7,7 @@
       <input
         id="stack-search"
         type="search"
-        placeholder="Search by stack or category"
+        placeholder="Search existing tech stacks"
         [value]="search()"
         [disabled]="busy()"
         (input)="onSearch($event)"
@@ -54,33 +54,26 @@
         </div>
       }
 
-      @if (groups().length === 0) {
+      @if (filteredStacks().length === 0) {
         <app-state-message kind="empty" message="No tech stacks match your filter." />
       } @else {
-        @for (group of groups(); track group.category) {
-          <fieldset
-            class="flex flex-col gap-2 rounded-md border border-border p-3"
-            [disabled]="busy()"
-          >
-            <legend class="px-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {{ group.category }}
-            </legend>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              @for (stack of group.stacks; track stack.id) {
-                <label class="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    [value]="stack.id"
-                    [checked]="isSelected(stack.id)"
-                    (change)="toggle(stack.id, $event)"
-                    class="size-4 rounded border-border accent-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                  />
-                  {{ stack.stackName }}
-                </label>
-              }
-            </div>
-          </fieldset>
-        }
+        <ul class="flex flex-col gap-1 rounded-md border border-border p-3">
+          @for (stack of filteredStacks(); track stack.id) {
+            <li>
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  [value]="stack.id"
+                  [checked]="isSelected(stack.id)"
+                  [disabled]="busy()"
+                  (change)="toggle(stack.id, $event)"
+                  class="size-4 rounded border-border accent-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                {{ stack.stackName }}
+              </label>
+            </li>
+          }
+        </ul>
       }
     }
   }

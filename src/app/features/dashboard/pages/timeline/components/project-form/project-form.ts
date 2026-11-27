@@ -1,38 +1,44 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { Skeleton } from '../../../../../../shared';
 import {
-  CreateProjectRequest,
-  CreateProjectWithStacksRequest,
-  TechStackItem,
-} from '../../../../core';
-import { StackPicker } from '../stack-picker/stack-picker';
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { CreateProjectRequest, Project } from '../../../../core';
 
 type Field = keyof CreateProjectRequest;
 
-/** Basic create form for a project attached to an experience. */
+/** Modal form shared by the add and edit actions for a project. */
 @Component({
   selector: 'app-project-form',
-  imports: [Skeleton, StackPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './project-form.html',
 })
 export class ProjectForm {
+  readonly project = input<Project | null>(null);
   readonly busy = input(false);
   readonly error = input<string | null>(null);
-  readonly stacks = input<TechStackItem[]>([]);
-  readonly stacksLoading = input(false);
-  readonly stackError = input<string | null>(null);
 
-  readonly saved = output<CreateProjectWithStacksRequest>();
+  readonly saved = output<CreateProjectRequest>();
   readonly cancelled = output<void>();
-  readonly retryStacks = output<void>();
 
   protected readonly projectName = signal('');
   protected readonly description = signal('');
   protected readonly contribution = signal('');
-  protected readonly selectedStackIds = signal<number[]>([]);
 
   protected readonly canSave = computed(() => !!this.projectName().trim() && !this.busy());
+
+  constructor() {
+    effect(() => {
+      const item = this.project();
+      this.projectName.set(item?.projectName ?? '');
+      this.description.set(item?.description ?? '');
+      this.contribution.set(item?.contribution ?? '');
+    });
+  }
 
   protected onInput(field: Field, event: Event): void {
     const value = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
@@ -60,12 +66,7 @@ export class ProjectForm {
       projectName: this.optional(this.projectName()),
       description: this.optional(this.description()),
       contribution: this.optional(this.contribution()),
-      techStackIds: this.selectedStackIds(),
     });
-  }
-
-  protected onSelected(ids: number[]): void {
-    this.selectedStackIds.set(ids);
   }
 
   protected cancel(): void {

@@ -10,7 +10,7 @@ import {
   UpdateExperienceRequest,
 } from '../models/experience-write';
 import { ProjectMapper } from '../models/project.mapper';
-import { CreateProjectRequest, ProjectDto } from '../models/project-write';
+import { CreateProjectRequest, ProjectDto, UpdateProjectRequest } from '../models/project-write';
 
 /** Owns experience reads that need DTO mapping and the JWT-gated write calls. */
 @Injectable({ providedIn: 'root' })
@@ -49,6 +49,11 @@ export class ExperienceAdminService {
       `v1/admin/experience/${experienceId}/project`,
       request,
     );
+    return ProjectMapper.fromDto(dto);
+  }
+
+  async updateProject(id: number, request: UpdateProjectRequest): Promise<Project> {
+    const dto = await this.api.put<ProjectDto>(`v1/admin/project/${id}`, request);
     return ProjectMapper.fromDto(dto);
   }
 }

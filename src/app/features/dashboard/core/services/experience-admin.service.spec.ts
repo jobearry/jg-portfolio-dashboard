@@ -122,4 +122,15 @@ describe('ExperienceAdminService', () => {
 
     await expect(result).resolves.toMatchObject({ id: 9, projectName: 'Portal' });
   });
+
+  it('updateProject_WhenCalled_PutsFieldsAndReturnsMappedProject', async () => {
+    const result = service.updateProject(9, projectBody);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/project/9`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(projectBody);
+    request.flush(projectDto);
+
+    await expect(result).resolves.toMatchObject({ id: 9, projectName: 'Portal' });
+  });
 });

@@ -66,9 +66,7 @@ export class TechStackList implements OnInit {
 
     return CATEGORY_ORDER.flatMap((category, index) => {
       const skills = groups.get(category);
-      return skills
-        ? [{ category, skills, index: String(index + 1).padStart(2, '0') }]
-        : [];
+      return skills ? [{ category, skills, index: String(index + 1).padStart(2, '0') }] : [];
     });
   });
   protected readonly visibleGroups = computed(() =>

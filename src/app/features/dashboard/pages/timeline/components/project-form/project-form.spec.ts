@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TechStackItem } from '../../../../core';
+import { Project } from '../../../../core';
 import { ProjectForm } from './project-form';
 
 describe('ProjectForm', () => {
@@ -13,10 +13,13 @@ describe('ProjectForm', () => {
       button.textContent?.includes('Save project'),
     ) as HTMLButtonElement;
 
-  const stacks: TechStackItem[] = [
-    { id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' },
-    { id: 2, stackName: 'Spring', imgSrc: null, category: 'Backend' },
-  ];
+  const project: Project = {
+    id: 9,
+    projectName: 'Portal',
+    description: 'Internal dashboard',
+    contribution: 'Frontend',
+    techStacks: null,
+  };
 
   function setValue(selector: HTMLInputElement | HTMLTextAreaElement, value: string): void {
     selector.value = value;
@@ -53,29 +56,23 @@ describe('ProjectForm', () => {
       projectName: 'Portal',
       description: 'Internal dashboard',
       contribution: 'Frontend',
-      techStackIds: [],
     });
   });
 
-  it('submit_IncludesSelectedStackIds', () => {
-    let payload: unknown;
-    fixture.componentInstance.saved.subscribe((value) => (payload = value));
-    fixture.componentRef.setInput('stacks', stacks);
+  it('whenEditing_PrefillsFieldsFromTheProject', () => {
+    fixture.componentRef.setInput('project', project);
     fixture.detectChanges();
 
-    const checkbox = element().querySelector(
-      'input[type="checkbox"][value="1"]',
-    ) as HTMLInputElement;
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    setValue(input('project-name'), 'Portal');
-    element()
-      .querySelector('form')
-      ?.dispatchEvent(new Event('submit', { bubbles: true }));
+    expect(input('project-name').value).toBe('Portal');
+    expect(textarea('project-description').value).toBe('Internal dashboard');
+    expect(textarea('project-contribution').value).toBe('Frontend');
+  });
+
+  it('doesNotRenderStackControls', () => {
+    fixture.componentRef.setInput('project', project);
     fixture.detectChanges();
 
-    expect(payload).toMatchObject({ techStackIds: [1] });
+    expect(element().querySelector('#stack-search')).toBeFalsy();
   });
 
   it('whenApiErrorIsProvided_RendersAlert', () => {
