@@ -30,6 +30,8 @@ Live screens: how they're reached, what they render, data source, interactions.
 
 **File:** `features/dashboard/pages/overview/{ts,html}`
 
+- **Layout:** shared centered `max-w-5xl` column with `px-2 py-3`,
+  `sm:px-6 sm:py-5`, and `lg:px-10`, matching Timeline, Toolbox, and Settings.
 - **Data:** `v1/overview` → `OverviewItem[]`; GitHub count; Notion count. All in
   parallel via `OverviewSignalService`.
 - **States:** `app-skeleton` (`metric` cards) while loading; shared error block
@@ -166,6 +168,8 @@ parked, unrouted, source retained.
 
 **File:** `features/dashboard/pages/blog/{ts,html}`
 
+- **Layout:** same shared centered `max-w-5xl` column and responsive gutters as
+  Timeline, Toolbox, and Settings.
 - **Data:** `v1/notion/{site.notion.pageId}` → `NotionPageCard[]`.
 - **Loading:** `app-skeleton` (`entries`).
 - **Header:** `app-page-header` (WRITING / Notes from the journey).

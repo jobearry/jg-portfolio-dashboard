@@ -81,6 +81,11 @@ close), `shell-state.service.ts` (signals + scroll lock), `sidebar/`, `header/`,
   **Download CV**, **Lock dashboard** (clears the JWT and returns to `/`).
   Keyboard and outside-click handling included. Theme selection moved to Settings.
 
+Dashboard content pages use a shared centered `max-w-5xl` column with
+responsive gutters (`px-2 py-3`, `sm:px-6 sm:py-5`, `lg:px-10`): `overview.html`,
+`timeline.ts`, `experience-projects.html`, `project.html`, `blog.html`,
+`toolbox.html`, and `settings.html` under `features/dashboard/pages/`.
+
 Shared UI in `src/app/shared/ui/`: `page-header`, `state-message` (error/empty
 with **Try again**), `skeleton` (text/card/list/grid/entries, `role="status"`).
 
