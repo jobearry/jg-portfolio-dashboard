@@ -3,78 +3,64 @@
     <app-state-message kind="error" [message]="error() ?? ''" (retry)="retry.emit()" />
   } @else {
     <div>
-      <label for="stack-search" class="block text-sm font-medium">Filter tech stacks</label>
+      <label for="stack-search" class="block text-sm font-medium">Tech stacks</label>
       <input
         id="stack-search"
         type="search"
-        placeholder="Search existing tech stacks"
+        placeholder="Search stacks, then press Enter"
         [value]="search()"
         [disabled]="busy()"
         (input)="onSearch($event)"
+        (keydown.enter)="onEnter($event)"
         class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       />
+
+      @if (isSearching()) {
+        @if (match(); as found) {
+          <p class="mt-1 text-xs text-muted-foreground">
+            Press Enter to add
+            <span class="font-medium text-foreground">{{ found.stackName }}</span>
+          </p>
+        } @else {
+          <p class="mt-1 text-xs text-muted-foreground">No matching stack.</p>
+        }
+      }
     </div>
 
-    @if (stacks().length === 0) {
-      <app-state-message kind="empty" message="No tech stacks are available." />
-    } @else {
-      @if (selectedStacks().length > 0) {
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Selected
-            </span>
-            <button
-              type="button"
-              [disabled]="busy()"
-              class="text-xs font-medium text-accent-brand transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              (click)="clear()"
-            >
-              Clear
-            </button>
-          </div>
-          <ul class="flex flex-wrap gap-2">
-            @for (stack of selectedStacks(); track stack.id) {
-              <li
-                class="inline-flex items-center gap-2 rounded-md bg-accent-brand/10 px-2 py-1 text-xs font-medium text-accent-brand"
-              >
-                {{ stack.stackName }}
-                <button
-                  type="button"
-                  [attr.aria-label]="'Remove ' + stack.stackName"
-                  [disabled]="busy()"
-                  class="rounded-sm leading-none transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  (click)="remove(stack.id)"
-                >
-                  ×
-                </button>
-              </li>
-            }
-          </ul>
+    @if (selectedStacks().length > 0) {
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Selected
+          </span>
+          <button
+            type="button"
+            [disabled]="busy()"
+            class="text-xs font-medium text-accent-brand transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            (click)="clear()"
+          >
+            Clear
+          </button>
         </div>
-      }
-
-      @if (filteredStacks().length === 0) {
-        <app-state-message kind="empty" message="No tech stacks match your filter." />
-      } @else {
-        <ul class="flex flex-col gap-1 rounded-md border border-border p-3">
-          @for (stack of filteredStacks(); track stack.id) {
-            <li>
-              <label class="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  [value]="stack.id"
-                  [checked]="isSelected(stack.id)"
-                  [disabled]="busy()"
-                  (change)="toggle(stack.id, $event)"
-                  class="size-4 rounded border-border accent-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                {{ stack.stackName }}
-              </label>
+        <ul class="flex flex-wrap gap-2">
+          @for (stack of selectedStacks(); track stack.id) {
+            <li
+              class="inline-flex items-center gap-2 rounded-md bg-accent-brand/10 px-2 py-1 text-xs font-medium text-accent-brand"
+            >
+              {{ stack.stackName }}
+              <button
+                type="button"
+                [attr.aria-label]="'Remove ' + stack.stackName"
+                [disabled]="busy()"
+                class="rounded-sm leading-none transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                (click)="remove(stack.id)"
+              >
+                ×
+              </button>
             </li>
           }
         </ul>
-      }
+      </div>
     }
   }
 </div>

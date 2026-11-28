@@ -1,13 +1,29 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  ParamMap,
+  provideRouter,
+  Router,
+} from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../../../../../environments/environment';
 import { ExperienceDto, ExperienceTimeline, ProjectDto } from '../../../../core';
 import { ExperienceProjects } from './experience-projects';
 
+@Component({ template: '' })
+class ProjectDetailStub {}
+
+@Component({ template: '' })
+class TimelineStub {}
+
 describe('ExperienceProjects', () => {
   let fixture: ComponentFixture<ExperienceProjects>;
   let http: HttpTestingController;
+  let params: BehaviorSubject<ParamMap>;
 
   const experience: ExperienceTimeline = {
     id: 7,
@@ -32,7 +48,9 @@ describe('ExperienceProjects', () => {
 
   const loadUrl = `${environment.portfolioApi}/v1/experience/7`;
   const createUrl = `${environment.portfolioApi}/v1/admin/experience/7/project`;
-  const updateUrl = `${environment.portfolioApi}/v1/admin/project/9`;
+
+  const element = () => fixture.nativeElement as HTMLElement;
+  const input = (id: string) => element().querySelector(`#${id}`) as HTMLInputElement;
 
   function dtoWith(projects: ProjectDto[] | null): ExperienceDto {
     return {
@@ -49,21 +67,23 @@ describe('ExperienceProjects', () => {
     };
   }
 
-  const element = () => fixture.nativeElement as HTMLElement;
-  const input = (id: string) => element().querySelector(`#${id}`) as HTMLInputElement;
-
-  async function tick(): Promise<void> {
+  async function settle(): Promise<void> {
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+  }
+
+  function render(): void {
+    fixture = TestBed.createComponent(ExperienceProjects);
     fixture.detectChanges();
   }
 
   async function flushLoad(projects: ProjectDto[] | null): Promise<void> {
     http.expectOne(loadUrl).flush(dtoWith(projects));
-    await tick();
+    await settle();
   }
 
   async function initialLoad(projects: ProjectDto[] | null): Promise<void> {
-    fixture.detectChanges();
+    render();
     await flushLoad(projects);
   }
 
@@ -87,13 +107,6 @@ describe('ExperienceProjects', () => {
     fixture.detectChanges();
   }
 
-  function openEdit(): void {
-    (
-      element().querySelector('button[aria-label="Edit project Portal"]') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-  }
-
   function submitForm(): void {
     element()
       .querySelector('form')
@@ -102,21 +115,47 @@ describe('ExperienceProjects', () => {
   }
 
   beforeEach(async () => {
+    params = new BehaviorSubject<ParamMap>(convertToParamMap({ experienceId: '7' }));
+    const route = {
+      paramMap: params.asObservable(),
+      get snapshot() {
+        return { paramMap: params.value };
+      },
+    };
+
     await TestBed.configureTestingModule({
       imports: [ExperienceProjects],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([
+          { path: 'timeline', component: TimelineStub },
+          { path: 'dashboard/project/:id', component: ProjectDetailStub },
+        ]),
+        { provide: ActivatedRoute, useValue: route },
+      ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ExperienceProjects);
     http = TestBed.inject(HttpTestingController);
-    fixture.componentRef.setInput('experience', experience);
   });
 
   afterEach(() => http.verify());
 
-  it('load_WhenExperienceHasProjects_RendersProjectDetails', async () => {
+  it('load_WhenExperienceIdIsInvalid_ShowsErrorWithoutRequestingTheApi', async () => {
+    params.next(convertToParamMap({ experienceId: 'abc' }));
+    render();
+    await settle();
+
+    expect(element().querySelector('[role="alert"]')?.textContent).toContain(
+      'Invalid experience id',
+    );
+    http.expectNone(loadUrl);
+  });
+
+  it('load_WhenExperienceHasProjects_RendersProjectsPageAndDetails', async () => {
     await initialLoad([projectDto]);
 
+    expect(element().querySelector('app-page-header')?.textContent).toContain('Projects at Acme');
     expect(element().textContent).toContain('Portal');
     expect(element().textContent).toContain('Internal dashboard');
     expect(element().textContent).toContain('Frontend');
@@ -130,9 +169,9 @@ describe('ExperienceProjects', () => {
   });
 
   it('load_WhenApiFails_RendersErrorAndRetries', async () => {
-    fixture.detectChanges();
+    render();
     http.expectOne(loadUrl).flush({}, { status: 503, statusText: 'Service Unavailable' });
-    await tick();
+    await settle();
 
     expect(element().querySelector('[role="alert"]')?.textContent).toContain('503');
 
@@ -147,7 +186,6 @@ describe('ExperienceProjects', () => {
   it('add_WhenSubmitted_PostsOnlyTheProjectAndReloads', async () => {
     await initialLoad([]);
     openAdd();
-    expect(element().querySelector('#stack-search')).toBeFalsy();
     fillForm('Portal', 'Internal dashboard', 'Frontend');
     submitForm();
 
@@ -159,27 +197,11 @@ describe('ExperienceProjects', () => {
       contribution: 'Frontend',
     });
     post.flush(projectDto);
-    await tick();
-    http.expectNone(updateUrl);
+    await settle();
     await flushLoad([projectDto]);
 
     expect(element().textContent).toContain('Portal');
     expect(element().querySelector('#project-name')).toBeFalsy();
-  });
-
-  it('add_WhenUnauthorized_EmitsUnauthorizedWithoutShowingFormError', async () => {
-    let unauthorized = false;
-    fixture.componentInstance.unauthorized.subscribe(() => (unauthorized = true));
-    await initialLoad([]);
-    openAdd();
-    fillForm('Portal', '', '');
-    submitForm();
-
-    http.expectOne(createUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
-    await tick();
-
-    expect(unauthorized).toBe(true);
-    expect(element().querySelector('[role="alert"]')).toBeFalsy();
   });
 
   it('add_WhenApiRejects_ShowsFormErrorAndKeepsFormOpen', async () => {
@@ -194,7 +216,7 @@ describe('ExperienceProjects', () => {
         { title: 'Bad Request', detail: 'Project name is required.' },
         { status: 400, statusText: 'Bad Request' },
       );
-    await tick();
+    await settle();
 
     expect(element().querySelector('[role="alert"]')?.textContent).toContain(
       'Project name is required.',
@@ -202,100 +224,43 @@ describe('ExperienceProjects', () => {
     expect(element().querySelector('#project-name')).not.toBeNull();
   });
 
-  it('renders an icon-only edit action with a tooltip', async () => {
-    await initialLoad([projectDto]);
-
-    const button = element().querySelector(
-      'button[aria-label="Edit project Portal"]',
-    ) as HTMLButtonElement;
-
-    expect(button.textContent).not.toContain('Edit');
-    expect(button.title).toBe('Edit project');
-    expect(button.querySelector('ng-icon')).not.toBeNull();
-  });
-
-  it('edit_OpensTheFormPrefilledWithTheProject', async () => {
-    await initialLoad([projectDto]);
-    openEdit();
-
-    expect(input('project-name').value).toBe('Portal');
-    expect((element().querySelector('#project-description') as HTMLTextAreaElement).value).toBe(
-      'Internal dashboard',
-    );
-    expect((element().querySelector('#project-contribution') as HTMLTextAreaElement).value).toBe(
-      'Frontend',
-    );
-    expect(element().querySelector('#stack-search')).toBeFalsy();
-  });
-
-  it('edit_WhenSubmitted_PutsOnlyProjectFieldsAndUpdatesTheRow', async () => {
-    await initialLoad([projectDto]);
-    openEdit();
-    fillForm('Portal 2', 'Updated dashboard', 'Lead');
+  it('add_WhenUnauthorized_ClosesTheFormWithoutShowingFormError', async () => {
+    await initialLoad([]);
+    openAdd();
+    fillForm('Portal', '', '');
     submitForm();
 
-    const put = http.expectOne(updateUrl);
-    expect(put.request.method).toBe('PUT');
-    expect(put.request.body).toEqual({
-      projectName: 'Portal 2',
-      description: 'Updated dashboard',
-      contribution: 'Lead',
-    });
-    put.flush({
-      ...projectDto,
-      projectName: 'Portal 2',
-      description: 'Updated dashboard',
-      contribution: 'Lead',
-    });
-    await tick();
+    http.expectOne(createUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    await settle();
 
-    expect(element().textContent).toContain('Portal 2');
-    expect(element().textContent).toContain('Updated dashboard');
     expect(element().querySelector('#project-name')).toBeFalsy();
-  });
-
-  it('edit_WhenUnauthorized_EmitsUnauthorizedWithoutShowingFormError', async () => {
-    let unauthorized = false;
-    fixture.componentInstance.unauthorized.subscribe(() => (unauthorized = true));
-    await initialLoad([projectDto]);
-    openEdit();
-    fillForm('Portal 2', '', '');
-    submitForm();
-
-    http.expectOne(updateUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
-    await tick();
-
-    expect(unauthorized).toBe(true);
     expect(element().querySelector('[role="alert"]')).toBeFalsy();
   });
 
-  it('edit_WhenApiRejects_ShowsFormErrorAndKeepsFormOpen', async () => {
+  it('list_WhenRendered_HasNoInlineProjectEditAction', async () => {
     await initialLoad([projectDto]);
-    openEdit();
-    fillForm('Portal 2', '', '');
-    submitForm();
 
-    http
-      .expectOne(updateUrl)
-      .flush(
-        { title: 'Bad Request', detail: 'Project name is required.' },
-        { status: 400, statusText: 'Bad Request' },
-      );
-    await tick();
-
-    expect(element().querySelector('[role="alert"]')?.textContent).toContain(
-      'Project name is required.',
-    );
-    expect(element().querySelector('#project-name')).not.toBeNull();
+    expect(element().querySelector('button[aria-label="Edit project Portal"]')).toBeFalsy();
   });
 
-  it('close_WhenCloseButtonClicked_EmitsCancelled', async () => {
-    let cancelled = false;
-    fixture.componentInstance.cancelled.subscribe(() => (cancelled = true));
+  it('view_WhenProjectLinkClicked_NavigatesToTheProjectScreen', async () => {
+    await initialLoad([projectDto]);
+
+    const link = element().querySelector(
+      'a[aria-label="View project Portal"]',
+    ) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/dashboard/project/9');
+
+    link.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/dashboard/project/9');
+  });
+
+  it('back_WhenLinkRendered_PointsToTheTimeline', async () => {
     await initialLoad([]);
 
-    (element().querySelector('button[aria-label="Close dialog"]') as HTMLButtonElement).click();
-
-    expect(cancelled).toBe(true);
+    const link = element().querySelector('a[href="/timeline"]') as HTMLAnchorElement;
+    expect(link?.textContent).toContain('Back to timeline');
   });
 });

@@ -11,7 +11,7 @@ import { CreateProjectRequest, Project } from '../../../../core';
 
 type Field = keyof CreateProjectRequest;
 
-/** Modal form shared by the add and edit actions for a project. */
+/** Fields-only form shared by project creation and project detail editing. */
 @Component({
   selector: 'app-project-form',
   changeDetection: ChangeDetectionStrategy.OnPush,

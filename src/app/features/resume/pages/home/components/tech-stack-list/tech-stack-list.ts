@@ -17,8 +17,8 @@ interface SkillGroup {
   index: string;
 }
 
-/** The landing page shows the three layers of the stack; other categories are
- *  revealed by the "View more" toggle, still in the master order. */
+/** Known categories keep their master order; categories added through Settings
+ *  are appended in first-seen API order. Only the first three show by default. */
 const CATEGORY_ORDER: readonly string[] = [
   'Frontend',
   'Backend',
@@ -53,9 +53,17 @@ export class TechStackList implements OnInit {
   protected readonly state = computed(() => this.skillsService.getState());
   protected readonly expanded = signal(false);
   protected readonly groups = computed<SkillGroup[]>(() => {
+    const content = this.state().content;
+    const newCategories = new Set(
+      content
+        .map((skill) => skill.category)
+        .filter((category): category is string => !!category && !CATEGORY_ORDER.includes(category)),
+    );
+    const categories = [...CATEGORY_ORDER, ...newCategories];
+
     const groups = new Map<string, TechStackItem[]>();
-    for (const skill of this.state().content) {
-      if (!CATEGORY_ORDER.includes(skill.category)) {
+    for (const skill of content) {
+      if (!categories.includes(skill.category)) {
         continue;
       }
 
@@ -64,7 +72,7 @@ export class TechStackList implements OnInit {
       groups.set(skill.category, skills);
     }
 
-    return CATEGORY_ORDER.flatMap((category, index) => {
+    return categories.flatMap((category, index) => {
       const skills = groups.get(category);
       return skills ? [{ category, skills, index: String(index + 1).padStart(2, '0') }] : [];
     });

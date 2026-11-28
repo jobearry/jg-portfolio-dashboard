@@ -112,6 +112,25 @@ describe('ExperienceAdminService', () => {
     });
   });
 
+  it('getProject_WhenCalled_GetsProjectByIdAndMapsNullableFields', async () => {
+    const result = service.getProject(9);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/project/9`);
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      ...projectDto,
+      description: null,
+      techStacks: [{ id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' }],
+    });
+
+    await expect(result).resolves.toMatchObject({
+      id: 9,
+      projectName: 'Portal',
+      description: '',
+      techStacks: [{ id: 1, stackName: 'Angular' }],
+    });
+  });
+
   it('createProject_WhenCalled_PostsToExperienceAndReturnsMappedProject', async () => {
     const result = service.createProject(7, projectBody);
 

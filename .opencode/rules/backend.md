@@ -10,13 +10,17 @@ is a separate codebase; this repository contains no server code.
 - The app is **read-only for reads**: entity reads are GET. The explicit
   exceptions are JWT-gated experience add/edit on `/timeline` (`POST`/`PUT
   v1/admin/experience[/…]`), approved in implementation history 046; JWT-gated
-  project creation and edit from the experience projects modal (`POST
-  v1/admin/experience/{experienceId}/project`, `PUT v1/admin/project/{id}`),
-  approved in implementation histories 047 and 049. Project stack replacement
-  (`PUT v1/admin/project/{id}/tech-stacks`, history 048) is implemented in
-  `ProjectStackService` but not called by the UI. Do not build other CRUD UI
-  without an explicit decision. Auth validation is also a GET, with a Bearer
-  token.
+  project creation from the routed experience projects page (`POST
+  v1/admin/experience/{experienceId}/project`) and project field edit on
+  `/dashboard/project/:id` (`PUT v1/admin/project/{id}`), approved in
+  implementation histories 047 and 049; JWT-gated per-project stack replacement
+  on `/dashboard/project/:id` (`PUT
+  v1/admin/project/{id}/tech-stacks`), approved in history 051; and create-only
+  category and skill administration on `/dashboard/settings` (`POST
+  v1/admin/skill-category`, `POST v1/admin/skill`), approved in history 050.
+  Project create/edit payloads must stay fields-only because the deployed
+  schemas reject `techStackIds`. Do not build other CRUD UI without an explicit
+  decision. Auth validation is also a GET, with a Bearer token.
 - Live endpoints:
   - `GET v1/overview`
   - `GET v1/github/owner/{username}/repositories/count`
@@ -24,7 +28,9 @@ is a separate codebase; this repository contains no server code.
   - `GET v1/experience?includeProjects=false`
   - `GET v1/experience/{id}`
   - `GET v1/project?includeTools=false`
+  - `GET v1/project/{id}`
   - `GET v1/skill`
+  - `GET v1/skill-category`
   - `GET v1/recommendation`
   - `GET v1/notion/{pageId}`
   - `GET v1/auth/me` — Bearer token required; returns `AuthClaims`, including
@@ -35,18 +41,23 @@ is a separate codebase; this repository contains no server code.
     `CreateProjectRequest` returns `ProjectDto`
   - `PUT v1/admin/project/{id}` — Bearer token required; `UpdateProjectRequest`
     returns `ProjectDto`
-  - `PUT v1/admin/project/{id}/tech-stacks` — prepared in `ProjectStackService`
-    but not called by the UI; `ReplaceProjectTechStacksRequest { techStackIds }`
-    returns `ProjectDto`
+  - `POST v1/admin/skill-category` — Bearer token required;
+    `SkillCategoryRequest { category }` returns `SkillCategoryDto`
+  - `POST v1/admin/skill` — Bearer token required; `CreateSkillRequest`
+    `{ stackName, imgSrc, category }` returns `TechStackDto`; category is
+    resolved by name
+  - `PUT v1/admin/project/{id}/tech-stacks` — called by the project skills
+    screen; `ReplaceProjectTechStacksRequest { techStackIds }` returns
+    `ProjectDto`
 - `POST v1/auth/login` is **not called by the frontend**. The admin JWT is
   obtained manually and pasted into the dashboard gate. Client-side expiry from
   `exp` is session UX only; the server remains the authority on validity.
 - Legacy endpoints are not used: `v1/portfolio/count`,
   `v1/portfolio/projects`, `v1/experience/{id}/projects`.
 - Do not guess endpoints or response shapes. If something is undocumented, ask.
-- Swagger/OpenAPI is currently not exposed at the usual paths. Until it is
-  available, `environment.portfolioApi` plus the models in `core/models` are the
-  contract.
+- The deployed API exposes Swagger at `/swagger/v1/swagger.json`; the local
+  checkout may lag the deployed contract. `environment.portfolioApi` plus the
+  models in `core/models` remain the frontend source of truth.
 
 ## Code boundary
 

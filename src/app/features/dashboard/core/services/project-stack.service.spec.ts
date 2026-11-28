@@ -34,6 +34,60 @@ describe('ProjectStackService', () => {
     ]);
   });
 
+  it('getAllCategories_GetsCategoriesAndMapsNullableFields', async () => {
+    const result = service.getAllCategories();
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/skill-category`);
+    expect(request.request.method).toBe('GET');
+    request.flush([
+      { id: 1, category: 'Frontend' },
+      { id: 2, category: null },
+    ]);
+
+    await expect(result).resolves.toEqual([
+      { id: 1, category: 'Frontend' },
+      { id: 2, category: '' },
+    ]);
+  });
+
+  it('createCategory_PostsCategoryAndReturnsMappedCategory', async () => {
+    const result = service.createCategory('DevOps');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ category: 'DevOps' });
+    request.flush({ id: 3, category: 'DevOps' }, { status: 201, statusText: 'Created' });
+
+    await expect(result).resolves.toEqual({ id: 3, category: 'DevOps' });
+  });
+
+  it('createSkill_PostsRequestAndReturnsMappedStack', async () => {
+    const result = service.createSkill({
+      stackName: 'Terraform',
+      imgSrc: null,
+      category: 'Cloud & Infrastructure',
+    });
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      stackName: 'Terraform',
+      imgSrc: null,
+      category: 'Cloud & Infrastructure',
+    });
+    request.flush(
+      { id: 4, stackName: 'Terraform', imgSrc: null, category: 'Cloud & Infrastructure' },
+      { status: 201, statusText: 'Created' },
+    );
+
+    await expect(result).resolves.toEqual({
+      id: 4,
+      stackName: 'Terraform',
+      imgSrc: null,
+      category: 'Cloud & Infrastructure',
+    });
+  });
+
   it('replaceProjectStacks_PutsAllIdsAndReturnsMappedProject', async () => {
     const result = service.replaceProjectStacks(9, [1, 2]);
 

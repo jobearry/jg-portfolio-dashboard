@@ -1,9 +1,14 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { environment } from '../../../../../environments/environment';
 import { ExperienceTimeline } from '../../core';
 import { Timeline } from './timeline';
+
+@Component({ template: '' })
+class ExperienceProjectsStub {}
 
 describe('Timeline', () => {
   let http: HttpTestingController;
@@ -23,7 +28,16 @@ describe('Timeline', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([
+          {
+            path: 'dashboard/experience/:experienceId/projects',
+            component: ExperienceProjectsStub,
+          },
+        ]),
+      ],
     });
 
     http = TestBed.inject(HttpTestingController);
@@ -122,18 +136,19 @@ describe('Timeline', () => {
     expect(actions.lastElementChild).toBe(button);
   });
 
-  it('renders an icon-only View projects action with a tooltip beside the pencil', async () => {
+  it('renders an icon-only View projects link with a tooltip beside the pencil', async () => {
     const element = await render([base]);
-    const button = element.querySelector(
-      'button[aria-label="View projects at Acme"]',
-    ) as HTMLButtonElement;
+    const link = element.querySelector(
+      'a[aria-label="View projects at Acme"]',
+    ) as HTMLAnchorElement;
 
-    expect(button.textContent).not.toContain('View projects');
-    expect(button.title).toBe('View projects');
-    expect(button.classList.contains('size-9')).toBe(true);
-    expect(button.querySelector('ng-icon')).not.toBeNull();
+    expect(link.textContent).not.toContain('View projects');
+    expect(link.title).toBe('View projects');
+    expect(link.getAttribute('href')).toBe('/dashboard/experience/1/projects');
+    expect(link.classList.contains('size-9')).toBe(true);
+    expect(link.querySelector('ng-icon')).not.toBeNull();
     expect(
-      button.parentElement?.contains(
+      link.parentElement?.contains(
         element.querySelector('button[aria-label="Edit experience at Acme"]'),
       ),
     ).toBe(true);
@@ -169,59 +184,18 @@ describe('Timeline', () => {
 
     expect(element.textContent).not.toContain('Portal');
     expect(element.textContent).not.toContain('Angular');
-    expect(element.querySelector('button[aria-label="View projects at Acme"]')).not.toBeNull();
+    expect(element.querySelector('a[aria-label="View projects at Acme"]')).not.toBeNull();
   });
 
-  it('opens the projects modal and renders the empty state', async () => {
+  it('View projects_WhenClicked_NavigatesToTheRoutedProjectsPage', async () => {
     const fixture = await setup([base]);
     const element = fixture.nativeElement as HTMLElement;
 
-    (
-      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-
-    expect(element.querySelector('[role="dialog"]')?.textContent).toContain('Projects at Acme');
-
-    http.expectOne(`${environment.portfolioApi}/v1/experience/1`).flush({ ...base, projects: [] });
+    (element.querySelector('a[aria-label="View projects at Acme"]') as HTMLAnchorElement).click();
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
 
-    expect(element.querySelector('[role="status"]')?.textContent).toContain('No projects yet');
-  });
-
-  it('closes the projects modal when cancelled', async () => {
-    const fixture = await setup([base]);
-    const element = fixture.nativeElement as HTMLElement;
-
-    (
-      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-    http.expectOne(`${environment.portfolioApi}/v1/experience/1`).flush({ ...base, projects: [] });
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    fixture.detectChanges();
-
-    (element.querySelector('button[aria-label="Close dialog"]') as HTMLButtonElement).click();
-    fixture.detectChanges();
-
-    expect(element.querySelector('[role="dialog"]')).toBeFalsy();
-  });
-
-  it('closes the projects modal when the request is unauthorized', async () => {
-    const fixture = await setup([base]);
-    const element = fixture.nativeElement as HTMLElement;
-
-    (
-      element.querySelector('button[aria-label="View projects at Acme"]') as HTMLButtonElement
-    ).click();
-    fixture.detectChanges();
-    http
-      .expectOne(`${environment.portfolioApi}/v1/experience/1`)
-      .flush({}, { status: 401, statusText: 'Unauthorized' });
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    fixture.detectChanges();
-
+    expect(TestBed.inject(Router).url).toBe('/dashboard/experience/1/projects');
     expect(element.querySelector('[role="dialog"]')).toBeFalsy();
   });
 

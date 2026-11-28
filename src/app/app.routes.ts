@@ -49,6 +49,31 @@ export const routes: Routes = [
         ...page('Blog'),
       },
       {
+        path: 'dashboard/experience/:experienceId/projects',
+        loadComponent: () =>
+          import('./features/dashboard/pages/timeline/components/experience-projects/experience-projects').then(
+            (m) => m.ExperienceProjects,
+          ),
+        ...page('Projects'),
+      },
+      {
+        path: 'dashboard/project/:id',
+        loadComponent: () =>
+          import('./features/dashboard/pages/project/project').then((m) => m.ProjectDetail),
+        ...page('Project'),
+      },
+      {
+        path: 'settings',
+        pathMatch: 'full',
+        redirectTo: 'dashboard/settings',
+      },
+      {
+        path: 'dashboard/settings',
+        loadComponent: () =>
+          import('./features/dashboard/pages/settings/settings').then((m) => m.Settings),
+        ...page('Settings'),
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'dashboard',

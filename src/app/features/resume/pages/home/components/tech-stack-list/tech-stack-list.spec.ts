@@ -198,6 +198,36 @@ describe('TechStackList', () => {
     expect(element.textContent).not.toContain('02');
   });
 
+  it('appends new API categories after the master order', async () => {
+    const fixture = render();
+    skillsRequest().flush([
+      { id: 1, category: 'Custom Ops', imgSrc: null, stackName: 'Terraform' },
+      { id: 2, category: 'Frontend', imgSrc: null, stackName: 'Angular' },
+      { id: 3, category: 'Backend', imgSrc: null, stackName: 'ASP.NET' },
+      { id: 4, category: 'Database', imgSrc: null, stackName: 'PostgreSQL' },
+    ]);
+
+    await settle(fixture);
+
+    const element = fixture.nativeElement as HTMLElement;
+    const headings = () =>
+      [...element.querySelectorAll('section h3')].map((heading) => heading.textContent?.trim());
+
+    expect(headings()).toEqual(['Frontend', 'Backend', 'Database']);
+
+    (element.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(headings()).toEqual(['Frontend', 'Backend', 'Database', 'Custom Ops']);
+    expect(
+      [...element.querySelectorAll('section span[aria-hidden="true"]')].map((mark) =>
+        mark.textContent?.trim(),
+      ),
+    ).toEqual(['An', 'AN', 'Po', 'Te']);
+    expect(element.textContent).toContain('Terraform');
+    expect(element.querySelectorAll('section')[3].textContent).toContain('07');
+  });
+
   it('shows a loading state while the request is pending', () => {
     const fixture = render();
 

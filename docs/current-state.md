@@ -1,7 +1,7 @@
 # Current State
 
-Angular SPA after the Tailwind rewrite (002–008). Read-only data, JWT-gated
-dashboard; no server code in this repository.
+Angular SPA after the Tailwind rewrite (002–008). Mostly read-only data with
+JWT-gated admin writes on Timeline and Settings; no server code in this repository.
 
 ## Stack
 
@@ -27,7 +27,10 @@ src/main.ts → App → app.routes.ts
   ""           → Dashboard shell (authGuard → / when token missing/expired)
       dashboard → Overview
       timeline  → Timeline
+      experience/:experienceId/projects → Projects by experience
       blog      → Blog
+      project/:id → Project details + skills
+      settings  → Settings
       **        → dashboard
 ```
 
@@ -46,6 +49,10 @@ Icons are registered per component. There are no retries or timeouts.
 | `timeline` | Timeline | `Timeline \| Jonathan Golimlim` | |
 | `profile` | redirect → `""` | — | Legacy URL |
 | `blog` | Blog | `Blog \| Jonathan Golimlim` | |
+| `dashboard/experience/:experienceId/projects` | Projects by experience | `Projects \| Jonathan Golimlim` | Reached from Timeline → View projects |
+| `dashboard/project/:id` | Project details + skills | `Project \| Jonathan Golimlim` | Reached from the projects page; Back → Timeline |
+| `settings` | redirect → `dashboard/settings` | — | Legacy alias |
+| `dashboard/settings` | Settings | `Settings \| Jonathan Golimlim` | Create-only admin + theme |
 | `**` | redirect → `dashboard` | — | Child wildcard |
 
 Order matters: the résumé routes are declared above the shell because both
@@ -62,12 +69,14 @@ close), `shell-state.service.ts` (signals + scroll lock), `sidebar/`, `header/`,
   back/forward are correct.
 - Sidebar items: Dashboard (`/dashboard`), Timeline (`/timeline`), Blog
   (`/blog`); active via `routerLinkActive` exact + `aria-current="page"`.
+  Settings (`/dashboard/settings`) is a utility link directly above the footer,
+  outside the primary nav.
 - Footer holds only the desktop collapse control (16rem ↔ 4.5rem, persisted in
   `localStorage`). Mobile: off-canvas 18rem panel below `md`, overlay, Escape,
   scroll lock, focus return.
 - Avatar dropdown: session countdown (whole minutes), **View profile** (`/`),
-  **Download CV**, theme toggle, **Lock dashboard** (clears the JWT and returns
-  to `/`). Keyboard and outside-click handling included.
+  **Download CV**, **Lock dashboard** (clears the JWT and returns to `/`).
+  Keyboard and outside-click handling included. Theme selection moved to Settings.
 
 Shared UI in `src/app/shared/ui/`: `page-header`, `state-message` (error/empty
 with **Try again**), `skeleton` (text/card/list/grid/entries, `role="status"`).
@@ -83,7 +92,7 @@ menu, overview, blog, résumé services.
 
 ### ApiClient — `core/api/api-client.ts`
 
-`environment.portfolioApi` base URL, GET only, JSON, `firstValueFrom`. The
+`environment.portfolioApi` base URL, typed `get`/`post`/`put`, JSON, `firstValueFrom`. The
 `authInterceptor` adds `Authorization: Bearer <token>` when a JWT is stored and
 handles non-validation 401s. No retries, timeouts, or error mapping.
 
@@ -122,9 +131,10 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 - `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`; all send JSON headers and
   are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
-  `ExperienceSignalService`, `ExperienceAdminService` (mapped reload + admin
-  writes for experiences and projects), `ProjectStackService` (stack catalog +
-  stack replacement, prepared but not called by the UI), `SkillsSignalService`,
+  `ExperienceSignalService`, `ExperienceAdminService` (mapped reload, project
+  read, and admin writes for experiences and project fields),
+  `ProjectStackService` (category/skill catalog reads, Settings creates, and
+  project stack replacement), `SkillsSignalService`,
   `RecommendationService`, `GithubCountSignalService`, `NotionCountSignalService`,
   `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
 
@@ -134,21 +144,28 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 |---|---|---|
 | `v1/overview` | Overview | `OverviewItem[]` |
 | `v1/project?includeTools=false` | Résumé Projects | `Project[]` |
+| `v1/project/{id}` | Project skills screen | `ProjectDto` |
 | `v1/github/owner/{username}/repositories/count` | Overview | `OverviewItem` |
 | `v1/github/owner/{username}/repositories` | Résumé Home + Projects | `GithubRepo[]` |
 | `v1/notion/{pageId}/count` | Overview | `OverviewItem` |
 | `v1/experience?includeProjects=false` | Dashboard Timeline, Résumé Home | `ExperienceTimeline[]` |
-| `v1/experience/{id}` | Timeline projects modal | `ExperienceDto` |
+| `v1/experience/{id}` | Routed projects page | `ExperienceDto` |
 | `POST v1/admin/experience` | Timeline add form | `ExperienceDto` (Bearer required) |
 | `PUT v1/admin/experience/{id}` | Timeline edit form | `ExperienceDto` (Bearer required) |
-| `POST v1/admin/experience/{experienceId}/project` | Timeline add-project form | `ProjectDto` (Bearer required) |
-| `PUT v1/admin/project/{id}` | Timeline edit-project form | `ProjectDto` (Bearer required) |
-| `v1/skill` | Résumé Home | `TechStackItem[]` |
+| `POST v1/admin/experience/{experienceId}/project` | Projects page Add form | `ProjectDto` (Bearer required) |
+| `PUT v1/admin/project/{id}` | Project details field edit | `ProjectDto` (Bearer required) |
+| `PUT v1/admin/project/{id}/tech-stacks` | Project skills editor | `ProjectDto` (Bearer required) |
+| `v1/skill` | Résumé Home, Settings, project screen | `TechStackItem[]` |
+| `v1/skill-category` | Settings | `SkillCategoryItem[]` |
+| `POST v1/admin/skill-category` | Settings add-category form | `SkillCategoryDto` (Bearer required) |
+| `POST v1/admin/skill` | Settings add-stack form | `TechStackDto` (Bearer required) |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
-`PUT v1/admin/project/{id}/tech-stacks` is implemented in `ProjectStackService`
-but is not called by any current UI; project stack writes are deferred. Legacy
+`POST v1/admin/skill` resolves its category by name, so the Settings form selects
+an existing category instead of free-typing one. `PUT v1/admin/project/{id}/tech-stacks`
+is called only by the project screen; project create/edit stay fields-only
+because the deployed schemas reject `techStackIds`. Legacy
 (`v1/portfolio/count`, `v1/portfolio/projects`,
 `v1/experience/{id}/projects`) are unused. `v1/auth/login` is called manually
 outside the app, not by any service. The GitHub token lives on the API.
@@ -168,13 +185,18 @@ outside the app, not by any service. The GitHub token lives on the API.
 - `CreateProjectRequest { projectName, description, contribution }` — nullable
   payload for `POST v1/admin/experience/{experienceId}/project`; also used for
   `PUT v1/admin/project/{id}` via the `UpdateProjectRequest` alias.
-- `ReplaceProjectTechStacksRequest { techStackIds }` — body of the stack PUT,
-  prepared for deferred stack editing.
+- `ReplaceProjectTechStacksRequest { techStackIds }` — body of the stack PUT used
+  by the project screen.
 - `ProjectDto` — nullable API response for a project; `ProjectMapper.fromDto`
   maps it to `Project` with safe defaults, including nested `TechStackDto[]`.
 - `TechStackDto` — nullable API form of a stack, mapped by
   `TechStackMapper.fromDto` into `TechStackItem`.
 - `TechStackItem { id, stackName, imgSrc, category }`
+- `SkillCategoryDto { id, category|null }` — nullable API category, mapped by
+  `SkillCategoryMapper.fromDto` into `SkillCategoryItem { id, category }`
+- `SkillCategoryRequest { category|null }` — body of `POST v1/admin/skill-category`
+- `CreateSkillRequest { stackName, imgSrc, category }` — body of
+  `POST v1/admin/skill`; category resolves by name
 - `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
@@ -191,6 +213,8 @@ outside the app, not by any service. The GitHub token lives on the API.
   `dotenv` is an explicit dev dependency.
 - Theme: `ThemeService` persists to `localStorage` (`portfolio-theme`), toggles
   `.dark` + `color-scheme` on `<html>`; inline script applies it pre-paint.
+  Settings exposes a Light/Dark segmented control; the dashboard account menu no
+  longer has a theme item. The public résumé keeps its compact toggle.
 - `src/styles.css`: `@theme inline` + light/dark variables (`--background`,
   `--foreground`, `--card`, `--muted`, `--border`, `--sidebar*`,
   `--radius`). Accent token `--color-accent-brand` (`#912f56` light, `#c39bd3`
@@ -209,10 +233,17 @@ outside the app, not by any service. The GitHub token lives on the API.
   longer rendered inline.
 - [x] JWT-gated timeline add/edit modal; reloads the list after save and shows
   `400`/`404`/`503` errors in the form (`401` stays with the auth interceptor).
-- [x] Per-experience projects modal with loading/empty/error/list states, an
-  Add project form (`POST`), and an icon-only per-project edit action opening
-  the same form prefilled (`PUT` of project fields only). Stack chips are
-  read-only; no stack writes are performed.
+- [x] Routed per-experience projects page at
+  `/dashboard/experience/:experienceId/projects` with loading/empty/error/list
+  states, an Add project form (`POST`), **View project** links, and **Back to
+  timeline**. Project rows have no inline edit action and read-only stack chips.
+- [x] Project details and skills screen at `/dashboard/project/:id` with mapped
+  project read, a pencil-triggered fields-only edit form (`PUT`), a search-only
+  stack picker, explicit load/save states, stack replacement via
+  `PUT v1/admin/project/{id}/tech-stacks`, and **Back to timeline**. Unsaved
+  stack selection survives a field save.
+- [x] Settings page with create-only category/skill forms, explicit loading,
+  empty, error, and form-error states, and a Light/Dark segmented control.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -220,10 +251,13 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: delete UI, project stack writes, stack/category creation UI,
-in-app login/registration, search/filter/pagination, toasts, analytics, i18n.
-The flat search-only `StackPicker` and `ProjectStackService` are retained but
-unwired for the planned stack-editing work.
+Not present: delete UI, category/skill edit, in-app login/registration,
+search/filter/pagination, toasts, analytics, i18n. The search-only
+`StackPicker` lives on the project screen and writes through
+`ProjectStackService.replaceProjectStacks`; it is no longer rendered in the
+fields-only project form because the deployed project POST/PUT schemas reject
+`techStackIds`. The former projects modal is gone; its list is a normal route.
+`ProjectStackService` also serves Settings catalog reads and creates.
 
 ## Removed in 008
 

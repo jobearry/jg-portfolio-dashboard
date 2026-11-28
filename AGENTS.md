@@ -12,12 +12,18 @@ The résumé feature in `src/app/features/resume/` provides the public pages at
 About, timeline, certifications, Recent Projects, and Technical Stack;
 `/projects` shows client-project cards and the full GitHub repository list.
 The dashboard lives under `/dashboard` and provides an overview, career
-timeline, and a Notion-backed blog. Data access is **read-only except for the
-JWT-gated experience add/edit and per-experience project add/edit actions on
-`/timeline`**. The dashboard is gated
-by a JWT that the visitor pastes into the header dialog; the public résumé pages
-stay open. The timeline also supports JWT-gated per-experience project add/edit
-from a **View projects** modal; project stacks are read-only.
+timeline, a Notion-backed blog, a routed per-experience projects page, a project
+details and skills screen, and a Settings page. Data access is **read-only except
+for JWT-gated experience add/edit on `/timeline`, project creation from the
+per-experience projects page, project field edit and stack replacement on
+`/dashboard/project/:id`, plus create-only category/skill administration on
+`/dashboard/settings`**. The dashboard is gated by a JWT that the visitor pastes
+into the header dialog; the public résumé pages stay open. **View projects** on a
+timeline card opens `/dashboard/experience/:experienceId/projects`, where new
+projects are created and existing ones link to `/dashboard/project/:id`. Project
+create/edit payloads stay fields-only; skills are managed on the project screen.
+The account menu contains session/account actions only; the Light/Dark theme
+control lives in Settings.
 
 Angular SPA that consumes an external **C# / .NET REST API**; no server code
 lives in this repository.
@@ -91,8 +97,9 @@ files. Never commit secrets.
    response shapes. Handle loading, empty, and error states — never leave a
    skeleton running forever.
 6. **Keep the routes.** `/` (résumé/profile), `/projects`, `/dashboard`,
-   `/timeline`, `/blog`, legacy `/profile` → `/`, and wildcard → `/dashboard`.
-   Titles and active states come from the router.
+   `/timeline`, `/dashboard/experience/:experienceId/projects`, `/blog`,
+   `/dashboard/project/:id`, `/dashboard/settings`, legacy `/profile` → `/`, and
+   wildcard → `/dashboard`. Titles and active states come from the router.
 7. **Tailwind only.** Reuse design tokens; accent `#912F56`; never build class
    names dynamically (`bg-${color}`); mobile-first.
 8. **Accessibility and valid HTML.** Landmarks, heading order, `aria-label` on
@@ -113,16 +120,17 @@ These are real constraints and intentional gaps, not hypotheticals:
   The shell owns the empty path too, so the landing route must stay declared
   first with `pathMatch: 'full'`. `/` no longer redirects to `/dashboard`;
   **View profile** in the account menu links to `/`, and both résumé pages link
-  back to `/dashboard`. The sidebar footer contains only the collapse control.
-  Legacy `/profile` redirects to `/`.
+  back to `/dashboard`. The Settings utility link sits directly above the
+  sidebar footer, which contains only the collapse control. Legacy `/profile`
+  redirects to `/`.
 - `github/repos` is not implemented in the .NET API yet; the projects page shows
   its empty state until it is. The GitHub token lives on the API — never put one
   in the frontend environment.
 - The dashboard gate is UI-only for reads: portfolio reads stay anonymous on the
-  server, while the admin experience and project write endpoints require the JWT.
-  Project stack writes are prepared in a service but not called by the UI. The
-  JWT is a shared service token, not a user identity. It is pasted at runtime and
-  never committed.
+  server, while the admin experience, project, and stack write endpoints require
+  the JWT. Project create/edit payloads stay fields-only; stack replacement is
+  called only from `/dashboard/project/:id`. The JWT is a shared service token,
+  not a user identity. It is pasted at runtime and never committed.
 - Blog intentionally has no pagination, search, or excerpts.
 - `scripts/genenv.js` requires `.env` (`dotenv` is explicit); running
   `npm run build` rewrites `src/environments/*.ts`.
@@ -147,7 +155,7 @@ The full definition of done is in `.opencode/rules/quality.md`.
 src/app/core/            # ApiClient, site config, theme, sidebar menu
 src/app/features/dashboard/
   shell/                 # sidebar + header + router outlet
-  pages/                 # overview, timeline, profile, blog
+  pages/                 # overview, timeline, project, profile, blog, settings
   core/                  # models
 src/app/features/resume/ # public landing page + projects (imported, 020)
   pages/home/            # résumé landing page

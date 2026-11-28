@@ -18,7 +18,7 @@ describe('ProjectForm', () => {
     projectName: 'Portal',
     description: 'Internal dashboard',
     contribution: 'Frontend',
-    techStacks: null,
+    techStacks: [{ id: 1, stackName: 'Angular', imgSrc: null, category: 'Frontend' }],
   };
 
   function setValue(selector: HTMLInputElement | HTMLTextAreaElement, value: string): void {
@@ -27,10 +27,15 @@ describe('ProjectForm', () => {
     fixture.detectChanges();
   }
 
+  function submit(): void {
+    element()
+      .querySelector('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true }));
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ProjectForm],
-    }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ProjectForm] }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectForm);
     fixture.detectChanges();
@@ -40,17 +45,14 @@ describe('ProjectForm', () => {
     expect(save().hasAttribute('disabled')).toBe(true);
   });
 
-  it('submit_EmitsTrimmedPayload', () => {
+  it('submit_EmitsTrimmedFieldsOnly', () => {
     let payload: unknown;
     fixture.componentInstance.saved.subscribe((value) => (payload = value));
 
     setValue(input('project-name'), '  Portal  ');
     setValue(textarea('project-description'), ' Internal dashboard ');
     setValue(textarea('project-contribution'), ' Frontend ');
-    element()
-      .querySelector('form')
-      ?.dispatchEvent(new Event('submit', { bubbles: true }));
-    fixture.detectChanges();
+    submit();
 
     expect(payload).toEqual({
       projectName: 'Portal',
@@ -68,10 +70,8 @@ describe('ProjectForm', () => {
     expect(textarea('project-contribution').value).toBe('Frontend');
   });
 
-  it('doesNotRenderStackControls', () => {
-    fixture.componentRef.setInput('project', project);
-    fixture.detectChanges();
-
+  it('doesNotRenderTheStackPicker', () => {
+    expect(element().querySelector('app-stack-picker')).toBeFalsy();
     expect(element().querySelector('#stack-search')).toBeFalsy();
   });
 

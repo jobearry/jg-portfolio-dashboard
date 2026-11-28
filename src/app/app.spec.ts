@@ -147,10 +147,19 @@ describe('App shell', () => {
   it('keeps every live route reachable', async () => {
     const router = TestBed.inject(Router);
 
-    for (const path of ['/timeline', '/blog']) {
+    for (const path of [
+      '/timeline',
+      '/blog',
+      '/dashboard/experience/1/projects',
+      '/dashboard/settings',
+      '/dashboard/project/9',
+    ]) {
       await router.navigateByUrl(path);
       expect(router.url).toBe(path);
     }
+
+    await router.navigateByUrl('/settings');
+    expect(router.url).toBe('/dashboard/settings');
   });
 
   it('derives the header title from the active route', async () => {
@@ -163,6 +172,45 @@ describe('App shell', () => {
 
     const heading = (fixture.nativeElement as HTMLElement).querySelector('header h1');
     expect(heading?.textContent?.trim()).toBe('Timeline');
+  });
+
+  it('places the Settings link directly above the sidebar footer', async () => {
+    const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/dashboard');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const aside = (fixture.nativeElement as HTMLElement).querySelector('aside') as HTMLElement;
+    const settings = aside.querySelector('a[href="/dashboard/settings"]') as HTMLAnchorElement;
+    const collapse = aside.querySelector(
+      'button[aria-controls="shell-sidebar"]',
+    ) as HTMLButtonElement;
+
+    expect(settings?.textContent).toContain('Settings');
+    expect(
+      settings.compareDocumentPosition(collapse) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('routes from the sidebar Settings link to /dashboard/settings', async () => {
+    const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/dashboard');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const link = element.querySelector('a[href="/dashboard/settings"]') as HTMLAnchorElement;
+    link.click();
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(router.url).toBe('/dashboard/settings');
+    expect(element.querySelector('app-settings')).toBeTruthy();
   });
 
   it('marks the active sidebar link with aria-current', async () => {

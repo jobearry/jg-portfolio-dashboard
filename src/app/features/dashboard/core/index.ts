@@ -2,6 +2,8 @@ export * from './models/overview-item';
 export * from './models/project';
 export * from './models/experience';
 export * from './models/techstack';
+export * from './models/skill-category';
+export * from './models/skill-category.mapper';
 export * from './models/feedback-item';
 export * from './models/experience-write';
 export * from './models/experience.mapper';

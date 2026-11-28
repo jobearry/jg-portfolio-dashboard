@@ -7,6 +7,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideFolderOpen, lucidePencil, lucidePlus } from '@ng-icons/lucide';
 import {
@@ -18,11 +19,10 @@ import {
 } from '../../../../shared';
 import { ExperienceAdminService, ExperienceTimeline, ExperienceWriteRequest } from '../../core';
 import { ExperienceForm } from './components/experience-form/experience-form';
-import { ExperienceProjects } from './components/experience-projects/experience-projects';
 
 @Component({
   selector: 'app-timeline',
-  imports: [ExperienceForm, ExperienceProjects, NgIcon, PageHeader, Skeleton, StateMessage],
+  imports: [ExperienceForm, NgIcon, PageHeader, RouterLink, Skeleton, StateMessage],
   providers: [provideIcons({ lucideFolderOpen, lucidePencil, lucidePlus })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -80,15 +80,14 @@ import { ExperienceProjects } from './components/experience-projects/experience-
                     </div>
 
                     <div class="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
+                      <a
+                        [routerLink]="['/dashboard/experience', experience.id, 'projects']"
                         title="View projects"
                         [attr.aria-label]="'View projects at ' + experience.company"
                         class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                        (click)="openProjects(experience)"
                       >
                         <ng-icon name="lucideFolderOpen" size="16" aria-hidden="true" />
-                      </button>
+                      </a>
 
                       <button
                         type="button"
@@ -136,14 +135,6 @@ import { ExperienceProjects } from './components/experience-projects/experience-
           }
         </ol>
 
-        @if (projectsFor(); as selected) {
-          <app-experience-projects
-            [experience]="selected"
-            (cancelled)="closeProjects()"
-            (unauthorized)="closeProjects()"
-          />
-        }
-
         @if (formOpen()) {
           <app-experience-form
             [experience]="editing()"
@@ -170,7 +161,6 @@ export class Timeline implements OnInit {
   protected readonly formOpen = signal(false);
   protected readonly editing = signal<ExperienceTimeline | null>(null);
   protected readonly formError = signal<string | null>(null);
-  protected readonly projectsFor = signal<ExperienceTimeline | null>(null);
 
   ngOnInit() {
     void this.load();
@@ -196,14 +186,6 @@ export class Timeline implements OnInit {
     this.formOpen.set(false);
     this.editing.set(null);
     this.formError.set(null);
-  }
-
-  protected openProjects(experience: ExperienceTimeline): void {
-    this.projectsFor.set(experience);
-  }
-
-  protected closeProjects(): void {
-    this.projectsFor.set(null);
   }
 
   protected async save(request: ExperienceWriteRequest): Promise<void> {

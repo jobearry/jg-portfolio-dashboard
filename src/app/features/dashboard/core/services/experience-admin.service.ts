@@ -34,6 +34,11 @@ export class ExperienceAdminService {
     return ExperienceMapper.fromDto(dto);
   }
 
+  async getProject(id: number): Promise<Project> {
+    const dto = await this.api.get<ProjectDto>(`v1/project/${id}`);
+    return ProjectMapper.fromDto(dto);
+  }
+
   async create(request: CreateExperienceRequest): Promise<ExperienceTimeline> {
     const dto = await this.api.post<ExperienceDto>('v1/admin/experience', request);
     return ExperienceMapper.fromDto(dto);

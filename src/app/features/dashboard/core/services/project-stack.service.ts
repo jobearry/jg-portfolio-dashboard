@@ -2,12 +2,19 @@ import { inject, Injectable } from '@angular/core';
 import { ApiClient } from '../../../../core/api/api-client';
 import { Project } from '../models/project';
 import { ProjectMapper } from '../models/project.mapper';
+import { SkillCategoryMapper } from '../models/skill-category.mapper';
 import { ProjectDto, ReplaceProjectTechStacksRequest } from '../models/project-write';
+import { SkillCategoryItem } from '../models/skill-category';
 import { TechStackItem } from '../models/techstack';
 import { TechStackMapper } from '../models/techstack.mapper';
-import { TechStackDto } from '../models/techstack-write';
+import {
+  CreateSkillRequest,
+  SkillCategoryDto,
+  SkillCategoryRequest,
+  TechStackDto,
+} from '../models/techstack-write';
 
-/** Owns the stack catalog read and the project stack-link write. */
+/** Owns the category/skill catalog and the admin writes for Settings. */
 @Injectable({ providedIn: 'root' })
 export class ProjectStackService {
   private readonly api = inject(ApiClient);
@@ -15,6 +22,22 @@ export class ProjectStackService {
   async getAll(): Promise<TechStackItem[]> {
     const dtos = await this.api.get<TechStackDto[]>('v1/skill');
     return dtos.map((dto) => TechStackMapper.fromDto(dto));
+  }
+
+  async getAllCategories(): Promise<SkillCategoryItem[]> {
+    const dtos = await this.api.get<SkillCategoryDto[]>('v1/skill-category');
+    return dtos.map((dto) => SkillCategoryMapper.fromDto(dto));
+  }
+
+  async createCategory(category: string): Promise<SkillCategoryItem> {
+    const body: SkillCategoryRequest = { category };
+    const dto = await this.api.post<SkillCategoryDto>('v1/admin/skill-category', body);
+    return SkillCategoryMapper.fromDto(dto);
+  }
+
+  async createSkill(request: CreateSkillRequest): Promise<TechStackItem> {
+    const dto = await this.api.post<TechStackDto>('v1/admin/skill', request);
+    return TechStackMapper.fromDto(dto);
   }
 
   async replaceProjectStacks(projectId: number, techStackIds: number[]): Promise<Project> {

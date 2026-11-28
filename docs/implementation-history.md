@@ -56,3 +56,6 @@ remain in git history. For what is true now, read
 | 047 | Per-experience projects modal, basic project creation, nested project mapping |
 | 048 | Grouped/searchable stack picker, stack catalog read, and project stack replacement |
 | 049 | Flat search-only picker; project add/edit with fields-only writes; icon-only edit action |
+| 050 | Settings route with create-only category/skill forms, theme segmented control, and hybrid résumé category order |
+| 051 | Separate project skills screen with mapped project read, search-only picker, and stack replacement |
+| 052 | Routed per-experience projects page; pencil field edit moved to the project screen |

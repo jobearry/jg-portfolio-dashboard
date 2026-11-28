@@ -12,6 +12,7 @@ describe('StackPicker', () => {
   ];
 
   const element = () => fixture.nativeElement as HTMLElement;
+  const search = () => element().querySelector('#stack-search') as HTMLInputElement;
 
   function setInputs(selectedIds: number[] = [], error: string | null = null): void {
     fixture.componentRef.setInput('stacks', stacks);
@@ -20,45 +21,67 @@ describe('StackPicker', () => {
     fixture.detectChanges();
   }
 
+  function type(term: string): void {
+    search().value = term;
+    search().dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  function pressEnter(): void {
+    search().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({ imports: [StackPicker] }).compileComponents();
     fixture = TestBed.createComponent(StackPicker);
   });
 
-  it('renders a flat list without category groups', () => {
+  it('rendersOnlyTheSearchFieldWhenNothingIsSelected', () => {
     setInputs();
 
-    expect(element().querySelectorAll('legend')).toHaveLength(0);
-    expect(element().textContent).toContain('Angular');
-    expect(element().textContent).toContain('Spring');
-    expect(element().textContent).toContain('TypeScript');
+    expect(search()).toBeTruthy();
+    expect(element().querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+    expect(element().textContent).not.toContain('Angular');
   });
 
-  it('filters stacks by the search term', () => {
+  it('showsTheFirstMatchAsAnEnterHint', () => {
     setInputs();
-    const search = element().querySelector('#stack-search') as HTMLInputElement;
-    search.value = 'ang';
-    search.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    type('ang');
 
+    expect(element().textContent).toContain('Press Enter to add');
     expect(element().textContent).toContain('Angular');
     expect(element().textContent).not.toContain('Spring');
-    expect(element().textContent).not.toContain('TypeScript');
   });
 
-  it('toggle_WhenChecked_EmitsTheNewSelection', () => {
+  it('showsAMessageWhenNoStackMatches', () => {
+    setInputs();
+    type('rust');
+
+    expect(element().textContent).toContain('No matching stack.');
+  });
+
+  it('onEnter_EmitsTheMatchedStackAndClearsTheSearch', () => {
     let selection: number[] | undefined;
     fixture.componentInstance.selectionChange.subscribe((value) => (selection = value));
     setInputs();
+    type('type');
 
-    const checkbox = element().querySelector(
-      'input[type="checkbox"][value="2"]',
-    ) as HTMLInputElement;
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
+    pressEnter();
 
-    expect(selection).toEqual([2]);
+    expect(selection).toEqual([3]);
+    expect(search().value).toBe('');
+  });
+
+  it('onEnter_DoesNotReselectAnAlreadySelectedMatch', () => {
+    let selection: number[] | undefined;
+    fixture.componentInstance.selectionChange.subscribe((value) => (selection = value));
+    setInputs([1]);
+    type('ang');
+
+    pressEnter();
+
+    expect(selection).toBeUndefined();
   });
 
   it('remove_WhenChipClicked_EmitsSelectionWithoutThatStack', () => {
@@ -69,6 +92,18 @@ describe('StackPicker', () => {
     (element().querySelector('button[aria-label="Remove Angular"]') as HTMLButtonElement).click();
 
     expect(selection).toEqual([2]);
+  });
+
+  it('clear_EmitsAnEmptySelection', () => {
+    let selection: number[] | undefined;
+    fixture.componentInstance.selectionChange.subscribe((value) => (selection = value));
+    setInputs([1, 2]);
+
+    [...element().querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('Clear'))
+      ?.click();
+
+    expect(selection).toEqual([]);
   });
 
   it('whenCatalogFails_RendersErrorAndRetry', () => {

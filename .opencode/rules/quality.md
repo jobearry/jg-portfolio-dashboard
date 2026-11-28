@@ -7,7 +7,8 @@
 - [ ] `npm run build` succeeds with no new warnings.
 - [ ] `npm test` passes.
 - [ ] `npm run lint` passes once ESLint is added.
-- [ ] All live screens still render: `/dashboard`, `/timeline`, `/profile`, `/blog`.
+- [ ] All live screens still render: `/`, `/projects`, `/dashboard`, `/timeline`,
+  `/blog`, `/dashboard/project/:id`, `/dashboard/settings`; `/profile` redirects.
 - [ ] Every affected data screen handles loading, empty, and error states.
 - [ ] Keyboard navigation and `:focus-visible` states work.
 - [ ] Responsive behavior is verified from mobile to desktop.

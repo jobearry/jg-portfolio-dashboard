@@ -19,25 +19,46 @@ Open items only. Resolved work is in
 
 - Add/edit are implemented; delete is deferred despite the API exposing it.
 - `projects` and server-derived `durationMonths` are read-only in the experience
-  form. Projects are created from the per-experience modal instead.
-- Project edit is implemented for name/description/contribution; project delete
-  is not, even though the API exposes it.
-- Stacks on project rows are read-only. Neither add nor edit writes stack links;
-  `ProjectStackService` and the flat search-only `StackPicker` are kept unwired
-  for the planned stack-editing work (owner: timeline feature). There is no
-  stack/category creation UI.
-- The search picker no longer groups by category; category browsing is deferred.
-- The edit form hides stack controls rather than offering controls whose changes
-  would be discarded.
+  form. Projects are created from the routed per-experience projects page.
+- Project edit is implemented for name/description/contribution on the project
+  details screen; project delete is not, even though the API exposes it.
+- Stacks on routed project-page rows are read-only. Project add/edit stay
+  fields-only because the deployed API rejects `techStackIds` on
+  `CreateProjectRequest`/`UpdateProjectRequest` (`additionalProperties: false`);
+  use **View project** to edit skills. Category/skill creation lives in Settings.
+- The project skills picker has no checkboxes: type to find a stack, press
+  **Enter** to add the first match, and remove entries from the selected list.
+  Category grouping and browsing are deferred.
+- Project stack IDs that exist on a project but are missing from `v1/skill` are
+  not shown as chips; preserving or dropping them on save remains open.
 - No field-level validation messages: required fields only disable **Save**, and
   server `ProblemDetails` is reduced to `detail ?? title ??` a status-based
   fallback through `getErrorMessage`.
 - No drag-and-drop reordering or inline editing; changes reload the whole list.
-- Timeline cards no longer render a nested-projects block; use **View projects**.
+- Timeline cards no longer render a nested-projects block or open a modal;
+  **View projects** links to `/dashboard/experience/:experienceId/projects`.
+
+## Project details and skills screen
+
+- The screen edits project name, description, contribution, and stack links in
+  separate forms; the routed projects page only creates projects and links here.
+- Save is disabled until the selection differs from the loaded stacks; there is
+  no undo beyond editing the selection again.
 
 ## Blog
 
 - No pagination, filtering, search, or post preview/excerpt.
+
+## Settings
+
+- Category and skill creation are available, but edit/delete are not. The API
+  exposes delete endpoints; skill delete returns `409` while projects still
+  reference the skill.
+- The skill form selects an existing category by name; it does not free-type or
+  create a category inline. `imgSrc` is deliberately not exposed because the
+  résumé uses derived letter marks.
+- A 401 during an admin create is handled by the interceptor (token cleared, gate
+  reopened, return to `/`); the page also shows its load/form error state.
 
 ## Résumé content
 
@@ -69,8 +90,11 @@ Open items only. Resolved work is in
   leeway, but the server remains the authority — rotation or revocation can
   produce a 401 before `exp`.
 - A non-validation 401 clears the token, reopens the gate, and returns to `/`;
-  the originating data request still shows its error state. The exception is an
-  admin experience write: its modal closes so the gate owns the response.
+  the originating data request still shows its error state. An admin experience
+  write closes its modal, and a project field write closes its inline editor, so
+  the gate owns the response without a duplicate message. Settings forms and the
+  project stack editor stay mounted and show the error while navigation is owned
+  by the gate.
 - The token and expiry are held in `sessionStorage` and the token is sent on
   every request. Legacy raw-token values are ignored. No runtime claim/role
   checks are performed in the frontend.
@@ -91,7 +115,8 @@ Open items only. Resolved work is in
   `src/` is formatted.
 - CI runs lint → format check → build → test (`.github/workflows/ci.yml`).
 - Tests cover shell routing/state, user menu, portfolio service error contract,
-  theme behavior, and Overview/Timeline/Blog screens.
+  theme behavior, and Overview/Timeline/Project/Blog/Settings screens plus
+  mapper and service contracts.
 - `scripts/genenv.js` overwrites `src/environments/*.ts` on `start`/`build`
   from `.env`; missing values yield relative `/v1/...` calls. `dotenv` is an
   explicit dev dependency.
@@ -99,3 +124,29 @@ Open items only. Resolved work is in
   moderate advisories are build/dev-only via `@angular/cli` and `eslint`.
 - `tsconfig.json` sets `rootDir: ./src` for TypeScript 6 editor diagnostics;
   compiles with 5.9.3.
+
+## Maintainability review
+
+A read-only review after the routed projects work found no high-severity bloat;
+`experience-projects`, `stack-picker`, `project-form`, the entity services,
+`settings.ts`, and `user-menu.ts` are appropriately sized. Open cleanup
+candidates:
+
+- `features/dashboard/pages/project/project.{ts,html}` owns both field editing
+  and stack replacement. Splitting `ProjectDetailsPanel` and
+  `ProjectSkillsPanel` is optional unless either flow grows.
+- `features/dashboard/pages/settings/settings.html` duplicates the Light/Dark
+  button markup and class expressions; a standalone `ThemeToggle` would remove
+  about 35 lines.
+- `features/dashboard/pages/timeline/timeline.ts` keeps a non-trivial template
+  inline; move it to `timeline.html`.
+- `features/dashboard/pages/timeline/components/stack-picker/stack-picker.ts`
+  writes the search input value directly even though `[value]="search()"`
+  already clears it; remove the DOM write.
+- Route-id validation in the project and experience-projects screens is
+  duplicated; a `parseRouteId` helper in `shared/utils` is the small fix. A
+  generic load-state wrapper is not warranted.
+- Period formatting is duplicated between the dashboard and résumé timelines;
+  a shared helper must preserve each screen's current dash character.
+- `ShellSidebar.profileLink` / `core/constants/sidebar-sections.ts` →
+  `resumeProfileLink` are unused and can be removed.

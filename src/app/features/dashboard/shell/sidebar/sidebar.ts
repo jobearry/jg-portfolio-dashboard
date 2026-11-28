@@ -5,6 +5,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   SIDEBAR_ICONS,
   resumeProfileLink,
+  settingsLink,
   sidebarContent,
 } from '../../../../core/constants/sidebar-sections';
 import { ShellStateService } from '../shell-state.service';
@@ -65,6 +66,25 @@ import { UserMenu } from '../user-menu/user-menu';
         </ul>
       </nav>
 
+      <nav class="px-2 pb-1" aria-label="Utilities">
+        <a
+          [routerLink]="settingsLink.url"
+          routerLinkActive="bg-sidebar-accent text-sidebar-accent-foreground"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          [class.justify-center]="!state.showLabels()"
+          (click)="closeMobile()"
+        >
+          <ng-icon [name]="settingsLink.icon" size="18" />
+          @if (state.showLabels()) {
+            <span>{{ settingsLink.title }}</span>
+          } @else {
+            <span class="sr-only">{{ settingsLink.title }}</span>
+          }
+        </a>
+      </nav>
+
       <div class="border-t border-sidebar-border p-2">
         <button
           type="button"
@@ -91,6 +111,7 @@ export class ShellSidebar {
   protected readonly state = inject(ShellStateService);
   protected readonly sections = sidebarContent;
   protected readonly profileLink = resumeProfileLink;
+  protected readonly settingsLink = settingsLink;
 
   private readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');
 
