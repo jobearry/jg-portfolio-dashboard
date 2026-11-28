@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import type { ProblemDetails } from '../../features/dashboard/core/models/problem-details';
 
 const FALLBACK_MESSAGE = 'Something went wrong while loading this section.';
 
@@ -20,4 +21,25 @@ export function getErrorMessage(error: unknown): string {
   }
 
   return FALLBACK_MESSAGE;
+}
+
+/**
+ * Renders an API `ProblemDetails` message before falling back to the generic
+ * status text. Used by admin forms where the server explains validation errors.
+ */
+export function getApiErrorMessage(error: unknown): string {
+  if (error instanceof HttpErrorResponse && error.error && typeof error.error === 'object') {
+    const problem = error.error as ProblemDetails;
+    const detail = problem.detail?.trim();
+    if (detail) {
+      return detail;
+    }
+
+    const title = problem.title?.trim();
+    if (title) {
+      return title;
+    }
+  }
+
+  return getErrorMessage(error);
 }

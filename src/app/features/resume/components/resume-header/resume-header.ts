@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { site } from '../../../../core/config/site.config';
-import { DashboardLink } from '../dashboard-link';
+import { DashboardLink } from '../dashboard-link/dashboard-link';
 import { ThemeToggler } from '../theme-toggler';
 
 /**

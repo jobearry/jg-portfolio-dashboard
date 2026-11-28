@@ -1,0 +1,54 @@
+<section class="mx-auto flex w-full max-w-5xl flex-col gap-5 px-2 py-3 sm:px-6 sm:py-5 lg:px-10">
+  <app-page-header
+    eyebrow="Preferences"
+    title="Settings"
+    description="Manage your dashboard appearance."
+  />
+
+  <section
+    aria-labelledby="appearance-heading"
+    class="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:p-6"
+  >
+    <div>
+      <h3 id="appearance-heading" class="text-lg font-semibold text-foreground">Appearance</h3>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Choose the color theme used across the dashboard and résumé.
+      </p>
+    </div>
+
+    <div
+      role="group"
+      aria-label="Color theme"
+      class="inline-flex w-fit rounded-lg border border-border bg-muted/50 p-1"
+    >
+      <button
+        id="theme-light"
+        type="button"
+        aria-label="Use light theme"
+        [attr.aria-pressed]="theme() === 'light'"
+        [class]="
+          theme() === 'light'
+            ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+            : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+        "
+        (click)="setTheme('light')"
+      >
+        Light
+      </button>
+      <button
+        id="theme-dark"
+        type="button"
+        aria-label="Use dark theme"
+        [attr.aria-pressed]="theme() === 'dark'"
+        [class]="
+          theme() === 'dark'
+            ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+            : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+        "
+        (click)="setTheme('dark')"
+      >
+        Dark
+      </button>
+    </div>
+  </section>
+</section>

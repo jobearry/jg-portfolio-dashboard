@@ -30,6 +30,17 @@ describe('Blog', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
+  it('uses the shared centered content column', async () => {
+    const element = await render([]);
+    const section = element.querySelector('section');
+
+    expect(section?.classList.contains('mx-auto')).toBe(true);
+    expect(section?.classList.contains('max-w-5xl')).toBe(true);
+    expect(section?.classList.contains('px-2')).toBe(true);
+    expect(section?.classList.contains('sm:px-6')).toBe(true);
+    expect(section?.classList.contains('lg:px-10')).toBe(true);
+  });
+
   it('renders numbered entries with rewritten Notion URLs', async () => {
     const element = await render([
       { url: 'https://www.notion.so/first-post-123', date: '2026-01-01', title: 'First' },

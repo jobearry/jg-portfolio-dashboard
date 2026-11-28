@@ -1,12 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideFileDown,
-  lucideGithub,
-  lucideLayoutDashboard,
-  lucideMail,
-} from '@ng-icons/lucide';
+import { lucideFileDown, lucideGithub, lucideLayoutDashboard, lucideMail } from '@ng-icons/lucide';
 import { site } from '../../../../../../core/config/site.config';
 
 /**
@@ -49,8 +44,8 @@ import { site } from '../../../../../../core/config/site.config';
         Let’s build something useful.
       </h2>
       <p class="mx-auto mt-5 max-w-lg text-sm leading-7 text-muted-foreground">
-        Browse my client projects and public repositories, or send me an email about
-        roles, projects, or collaborations.
+        Browse my client projects and public repositories, or send me an email about roles,
+        projects, or collaborations.
       </p>
 
       <div class="mt-8 flex flex-wrap items-center justify-center gap-2">

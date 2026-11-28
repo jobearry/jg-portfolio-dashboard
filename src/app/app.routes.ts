@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 import { site } from './core/config/site.config';
 
 const page = (label: string) => ({
@@ -27,6 +28,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/dashboard/shell/dashboard').then((m) => m.Dashboard),
+    canActivate: [authGuard],
     title: `Dashboard | ${site.profile.name}`,
     children: [
       {
@@ -45,6 +47,37 @@ export const routes: Routes = [
         path: 'blog',
         loadComponent: () => import('./features/dashboard/pages/blog/blog').then((m) => m.Blog),
         ...page('Blog'),
+      },
+      {
+        path: 'dashboard/experience/:experienceId/projects',
+        loadComponent: () =>
+          import('./features/dashboard/pages/timeline/components/experience-projects/experience-projects').then(
+            (m) => m.ExperienceProjects,
+          ),
+        ...page('Projects'),
+      },
+      {
+        path: 'dashboard/project/:id',
+        loadComponent: () =>
+          import('./features/dashboard/pages/project/project').then((m) => m.ProjectDetail),
+        ...page('Project'),
+      },
+      {
+        path: 'settings',
+        pathMatch: 'full',
+        redirectTo: 'dashboard/toolbox',
+      },
+      {
+        path: 'dashboard/settings',
+        loadComponent: () =>
+          import('./features/dashboard/pages/settings/settings').then((m) => m.Settings),
+        ...page('Settings'),
+      },
+      {
+        path: 'dashboard/toolbox',
+        loadComponent: () =>
+          import('./features/dashboard/pages/toolbox/toolbox').then((m) => m.Toolbox),
+        ...page('Toolbox'),
       },
       {
         path: '',

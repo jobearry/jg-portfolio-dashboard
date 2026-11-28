@@ -1,0 +1,102 @@
+<section class="mx-auto flex w-full max-w-5xl flex-col gap-5 px-2 py-3 sm:px-6 sm:py-5 lg:px-10">
+  <a
+    routerLink="/timeline"
+    class="inline-flex w-fit items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+  >
+    <ng-icon name="lucideArrowLeft" size="16" aria-hidden="true" />
+    Back to timeline
+  </a>
+
+  @if (loading()) {
+    <app-skeleton variant="list" [rows]="3" />
+  } @else if (error()) {
+    <app-state-message kind="error" [message]="error() ?? ''" (retry)="retry()" />
+  } @else if (experience(); as experience) {
+    <app-page-header
+      eyebrow="Career"
+      [title]="'Projects at ' + experience.company"
+      [description]="experience.role + ' · Projects created for this role.'"
+    />
+
+    @if (adding()) {
+      <section
+        aria-labelledby="add-project-heading"
+        class="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:p-6"
+      >
+        <div>
+          <h3 id="add-project-heading" class="text-lg font-semibold text-foreground">
+            Add project
+          </h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            This project will be linked to {{ experience.company }}.
+          </p>
+        </div>
+        <app-project-form
+          [busy]="saving()"
+          [error]="formError()"
+          (saved)="add($event)"
+          (cancelled)="closeForm()"
+        />
+      </section>
+    } @else {
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-muted-foreground">Projects created under this experience.</p>
+        <button
+          type="button"
+          aria-label="Add project"
+          class="inline-flex items-center gap-2 rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          (click)="openAdd()"
+        >
+          <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
+          Add project
+        </button>
+      </div>
+
+      @if (projects().length === 0) {
+        <app-state-message kind="empty" message="No projects yet." />
+      } @else {
+        <ul class="flex flex-col gap-3">
+          @for (project of projects(); track project.id) {
+            <li class="flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-base font-semibold text-foreground">{{ project.projectName }}</h3>
+                <a
+                  [routerLink]="['/dashboard/project', project.id]"
+                  [attr.aria-label]="'View project ' + project.projectName"
+                  title="View project"
+                  class="inline-flex shrink-0 items-center gap-1 rounded-sm text-xs font-medium text-accent-brand transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  <ng-icon name="lucideArrowUpRight" size="14" aria-hidden="true" />
+                  View project
+                </a>
+              </div>
+              @if (project.description) {
+                <p class="text-sm leading-relaxed text-muted-foreground">
+                  {{ project.description }}
+                </p>
+              }
+              @if (project.contribution) {
+                <p class="text-sm leading-relaxed text-muted-foreground">
+                  {{ project.contribution }}
+                </p>
+              }
+              @if (project.techStacks && project.techStacks.length > 0) {
+                <ul class="flex flex-wrap gap-2">
+                  @for (stack of project.techStacks; track stack.id) {
+                    <li
+                      class="rounded-md bg-muted px-2 py-1 text-xs tracking-wide text-muted-foreground"
+                    >
+                      {{ stack.stackName }}
+                    </li>
+                  }
+                </ul>
+              }
+            </li>
+          }
+        </ul>
+      }
+    }
+  } @else {
+    <app-state-message kind="empty" message="Experience not found." />
+  }
+</section>
