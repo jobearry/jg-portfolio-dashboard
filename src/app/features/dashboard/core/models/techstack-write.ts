@@ -12,13 +12,20 @@ export interface SkillCategoryDto {
   category: string | null;
 }
 
-/** Request body for `POST v1/admin/skill-category`. */
+/** Request body for category create and `PUT v1/admin/skill-category/{id}`. */
 export interface SkillCategoryRequest {
   category: string | null;
 }
 
 /** Request body for `POST v1/admin/skill`; category is resolved by name. */
 export interface CreateSkillRequest {
+  stackName: string | null;
+  imgSrc: string | null;
+  category: string | null;
+}
+
+/** Request body for `PUT v1/admin/skill/{id}`; category is resolved by name. */
+export interface UpdateSkillRequest {
   stackName: string | null;
   imgSrc: string | null;
   category: string | null;

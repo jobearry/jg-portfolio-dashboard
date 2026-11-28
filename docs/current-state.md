@@ -128,13 +128,14 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 - `ResourceSignalService<T>` — single-object counterpart for count endpoints.
 - `getErrorMessage` / `getApiErrorMessage` (`shared/utils/error.util.ts`) —
   status-based fallback and `ProblemDetails.detail ?? title` for admin forms.
-- `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`; all send JSON headers and
-  are the only HTTP boundary used by services.
+- `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`/`delete<T>`; all send JSON
+  headers and are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
   `ExperienceSignalService`, `ExperienceAdminService` (mapped reload, project
   read, and admin writes for experiences and project fields),
-  `ProjectStackService` (category/skill catalog reads, Settings creates, and
-  project stack replacement), `SkillsSignalService`,
+  `ProjectStackService` (category/skill catalog reads, Settings creates,
+  typed catalog updates/deletes, and project stack replacement),
+  `SkillsSignalService`,
   `RecommendationService`, `GithubCountSignalService`, `NotionCountSignalService`,
   `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
 
@@ -159,13 +160,20 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `v1/skill-category` | Settings | `SkillCategoryItem[]` |
 | `POST v1/admin/skill-category` | Settings add-category form | `SkillCategoryDto` (Bearer required) |
 | `POST v1/admin/skill` | Settings add-stack form | `TechStackDto` (Bearer required) |
+| `PUT v1/admin/skill-category/{id}` | Settings rename form | `SkillCategoryDto` (Bearer required) |
+| `DELETE v1/admin/skill-category/{id}` | Settings delete confirmation | `204` (Bearer required) |
+| `PUT v1/admin/skill/{id}` | Service only (UI pending) | `TechStackDto` (Bearer required) |
+| `DELETE v1/admin/skill/{id}` | Service only (UI pending) | `204` (Bearer required) |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
-`POST v1/admin/skill` resolves its category by name, so the Settings form selects
-an existing category instead of free-typing one. `PUT v1/admin/project/{id}/tech-stacks`
-is called only by the project screen; project create/edit stay fields-only
-because the deployed schemas reject `techStackIds`. Legacy
+`POST v1/admin/skill` and `PUT v1/admin/skill/{id}` resolve their category by
+name, so forms select an existing category instead of free-typing one. Catalog
+deletes return `204`; skill delete returns `409` while a project still
+references the skill. No reorder endpoint or order field is exposed.
+`PUT v1/admin/project/{id}/tech-stacks` is called only by the project screen;
+project create/edit stay fields-only because the deployed schemas reject
+`techStackIds`. Legacy
 (`v1/portfolio/count`, `v1/portfolio/projects`,
 `v1/experience/{id}/projects`) are unused. `v1/auth/login` is called manually
 outside the app, not by any service. The GitHub token lives on the API.
@@ -194,9 +202,12 @@ outside the app, not by any service. The GitHub token lives on the API.
 - `TechStackItem { id, stackName, imgSrc, category }`
 - `SkillCategoryDto { id, category|null }` — nullable API category, mapped by
   `SkillCategoryMapper.fromDto` into `SkillCategoryItem { id, category }`
-- `SkillCategoryRequest { category|null }` — body of `POST v1/admin/skill-category`
+- `SkillCategoryRequest { category|null }` — body of category create and
+  `PUT v1/admin/skill-category/{id}`
 - `CreateSkillRequest { stackName, imgSrc, category }` — body of
   `POST v1/admin/skill`; category resolves by name
+- `UpdateSkillRequest { stackName, imgSrc, category }` — body of
+  `PUT v1/admin/skill/{id}`; category resolves by name
 - `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
@@ -242,8 +253,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   stack picker with typeahead results, explicit load/save states, stack
   replacement via `PUT v1/admin/project/{id}/tech-stacks`, and **Back to
   timeline**. Unsaved stack selection survives a field save.
-- [x] Settings page with create-only category/skill forms, explicit loading,
-  empty, error, and form-error states, and a Light/Dark segmented control.
+- [x] Settings page with category create/rename/delete, skill create, explicit
+  loading, empty, error, and form-error states, and a Light/Dark segmented
+  control. Category rows show usage counts and use inline delete confirmation.
+  Typed skill update/delete methods exist but are not wired to the UI.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -251,14 +264,15 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: delete UI, category/skill edit, in-app login/registration,
+Not present: skill edit/delete UI, reorder UI, in-app login/registration,
 global search/filter/pagination, toasts, analytics, i18n. The combobox
 `StackPicker` lives on the project screen, filters the local skill catalog, and
 writes through `ProjectStackService.replaceProjectStacks`; it is no longer
 rendered in the fields-only project form because the deployed project POST/PUT
 schemas reject `techStackIds`. The former projects modal is gone; its list is a
 normal route.
-`ProjectStackService` also serves Settings catalog reads and creates.
+`ProjectStackService` serves Settings catalog reads, creates, and category
+update/delete calls. Skill update/delete remain service-only for now.
 
 ## Removed in 008
 

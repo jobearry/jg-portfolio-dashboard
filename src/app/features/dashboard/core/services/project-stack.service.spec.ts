@@ -2,6 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../../../environments/environment';
+import { ProblemDetails } from '../models/problem-details';
+import { UpdateSkillRequest } from '../models/techstack-write';
 import { ProjectStackService } from './project-stack.service';
 
 describe('ProjectStackService', () => {
@@ -86,6 +88,69 @@ describe('ProjectStackService', () => {
       imgSrc: null,
       category: 'Cloud & Infrastructure',
     });
+  });
+
+  it('updateCategory_PutsExpectedBodyAndReturnsMappedCategory', async () => {
+    const result = service.updateCategory(2, 'Platform');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/2`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ category: 'Platform' });
+    request.flush({ id: 2, category: 'Platform' });
+
+    await expect(result).resolves.toEqual({ id: 2, category: 'Platform' });
+  });
+
+  it('deleteCategory_DeletesByIdAndResolves', async () => {
+    const result = service.deleteCategory(2);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/2`);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await expect(result).resolves.toBeUndefined();
+  });
+
+  it('updateSkill_PutsFieldsCategoryByNameAndReturnsMappedStack', async () => {
+    const body: UpdateSkillRequest = {
+      stackName: 'Kubernetes',
+      imgSrc: null,
+      category: 'Cloud & Infrastructure',
+    };
+    const result = service.updateSkill(4, body);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/4`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(body);
+    request.flush({ id: 4, ...body });
+
+    await expect(result).resolves.toEqual({ id: 4, ...body });
+  });
+
+  it('deleteSkill_DeletesByIdAndResolves', async () => {
+    const result = service.deleteSkill(4);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/4`);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await expect(result).resolves.toBeUndefined();
+  });
+
+  it('deleteSkill_WhenBackendReportsConflict_Rejects', async () => {
+    const problem: ProblemDetails = {
+      status: 409,
+      title: 'Conflict',
+      detail: 'Skill is still used by a project',
+    };
+    const result = service.deleteSkill(4);
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/4`);
+    request.flush(problem, { status: 409, statusText: 'Conflict' });
+
+    await expect(result).rejects.toMatchObject({ status: 409 });
   });
 
   it('replaceProjectStacks_PutsAllIdsAndReturnsMappedProject', async () => {

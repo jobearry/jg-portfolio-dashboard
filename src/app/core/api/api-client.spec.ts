@@ -58,4 +58,15 @@ describe('ApiClient', () => {
 
     await expect(result).resolves.toEqual(dto);
   });
+
+  it('delete_SendsNoBodyAndResolvesWithoutContent', async () => {
+    const result = client.delete<void>('v1/admin/experience/7');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/experience/7`);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await expect(result).resolves.toBeNull();
+  });
 });

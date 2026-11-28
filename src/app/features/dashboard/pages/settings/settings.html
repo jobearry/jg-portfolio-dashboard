@@ -105,13 +105,124 @@
       @if (state().categories.length === 0) {
         <app-state-message kind="empty" message="No categories yet." />
       } @else {
-        <ul class="flex flex-wrap gap-2" aria-label="Tech stack categories">
+        <ul class="flex flex-col gap-2" aria-label="Tech stack categories">
           @for (category of state().categories; track category.id) {
             <li
               data-testid="category-row"
-              class="rounded-full border border-border bg-muted/50 px-3 py-1 text-sm text-foreground"
+              [attr.data-category-id]="category.id"
+              class="flex flex-col gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-foreground"
             >
-              {{ category.category }}
+              @if (editingCategoryId() === category.id) {
+                <form
+                  class="flex flex-wrap items-center gap-2"
+                  (submit)="saveCategoryEdit(category.id, $event)"
+                >
+                  <label [attr.for]="'category-edit-' + category.id" class="sr-only">
+                    Edit {{ category.category }}
+                  </label>
+                  <input
+                    [id]="'category-edit-' + category.id"
+                    data-testid="category-edit-input"
+                    type="text"
+                    autocomplete="off"
+                    [value]="categoryDraft()"
+                    [disabled]="categoryActionId() === category.id"
+                    (input)="onCategoryDraftInput($event)"
+                    class="min-w-48 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    data-testid="category-save"
+                    aria-label="Save category"
+                    [disabled]="!canSaveCategoryEdit()"
+                    class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Cancel category edit"
+                    [disabled]="categoryActionId() === category.id"
+                    class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    (click)="cancelCategoryEdit()"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              } @else if (confirmingDeleteCategoryId() === category.id) {
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    Delete <span class="font-medium">{{ category.category }}</span
+                    >?
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-testid="category-confirm-delete"
+                      [attr.aria-label]="'Confirm delete category ' + category.category"
+                      [disabled]="categoryActionId() === category.id"
+                      class="rounded-md bg-destructive px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="deleteCategory(category.id)"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Cancel delete category"
+                      [disabled]="categoryActionId() === category.id"
+                      class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="cancelCategoryDelete()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-medium text-foreground">{{ category.category }}</span>
+                  @if (categoryUsage(category.category) > 0) {
+                    <span class="text-xs text-muted-foreground">
+                      {{ categoryUsageLabel(category.category) }}
+                    </span>
+                  }
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Edit category ' + category.category"
+                      [disabled]="categoryActionId() !== null"
+                      class="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="startCategoryEdit(category)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Delete category ' + category.category"
+                      [disabled]="
+                        categoryActionId() !== null || categoryUsage(category.category) > 0
+                      "
+                      class="rounded-md border border-destructive/40 px-3 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="startCategoryDelete(category)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (
+                categoryActionError() &&
+                (editingCategoryId() === category.id ||
+                  confirmingDeleteCategoryId() === category.id)
+              ) {
+                <p
+                  data-testid="category-action-error"
+                  role="alert"
+                  class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                >
+                  {{ categoryActionError() }}
+                </p>
+              }
             </li>
           }
         </ul>
@@ -155,14 +266,20 @@
         <label for="skill-category" class="sr-only">Category</label>
         <select
           id="skill-category"
-          [value]="selectedCategory()"
           [disabled]="savingSkill() || state().categories.length === 0"
           (change)="onCategoryChange($event)"
           class="min-w-48 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="" disabled>Select a category</option>
+          <option value="" disabled [selected]="selectedCategory() === ''">
+            Select a category
+          </option>
           @for (category of state().categories; track category.id) {
-            <option [value]="category.category">{{ category.category }}</option>
+            <option
+              [value]="category.category"
+              [selected]="selectedCategory() === category.category"
+            >
+              {{ category.category }}
+            </option>
           }
         </select>
 

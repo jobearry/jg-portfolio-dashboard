@@ -15,9 +15,12 @@ is a separate codebase; this repository contains no server code.
   `/dashboard/project/:id` (`PUT v1/admin/project/{id}`), approved in
   implementation histories 047 and 049; JWT-gated per-project stack replacement
   on `/dashboard/project/:id` (`PUT
-  v1/admin/project/{id}/tech-stacks`), approved in history 051; and create-only
-  category and skill administration on `/dashboard/settings` (`POST
+  v1/admin/project/{id}/tech-stacks`), approved in history 051; and
+  category/skill administration on `/dashboard/settings` (`POST
   v1/admin/skill-category`, `POST v1/admin/skill`), approved in history 050.
+  Settings also calls JWT-gated category update/delete methods through
+  `ProjectStackService`; skill edit/delete methods remain unused by the UI.
+  Reorder is not implemented because the API exposes no order field.
   Project create/edit payloads must stay fields-only because the deployed
   schemas reject `techStackIds`. Do not build other CRUD UI without an explicit
   decision. Auth validation is also a GET, with a Bearer token.
@@ -46,6 +49,15 @@ is a separate codebase; this repository contains no server code.
   - `POST v1/admin/skill` — Bearer token required; `CreateSkillRequest`
     `{ stackName, imgSrc, category }` returns `TechStackDto`; category is
     resolved by name
+  - `PUT v1/admin/skill-category/{id}` — Bearer token required;
+    `SkillCategoryRequest { category }` returns `SkillCategoryDto`
+  - `DELETE v1/admin/skill-category/{id}` — Bearer token required; `204`, with
+    `409` documented for conflicts
+  - `PUT v1/admin/skill/{id}` — Bearer token required; `UpdateSkillRequest`
+    `{ stackName, imgSrc, category }` returns `TechStackDto`; category is
+    resolved by name
+  - `DELETE v1/admin/skill/{id}` — Bearer token required; `204`, with `409`
+    when projects still reference the skill
   - `PUT v1/admin/project/{id}/tech-stacks` — called by the project skills
     screen; `ReplaceProjectTechStacksRequest { techStackIds }` returns
     `ProjectDto`

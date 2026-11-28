@@ -26,9 +26,9 @@ Open items only. Resolved work is in
   fields-only because the deployed API rejects `techStackIds` on
   `CreateProjectRequest`/`UpdateProjectRequest` (`additionalProperties: false`);
   use **View project** to edit skills. Category/skill creation lives in Settings.
-- The project skills picker has no checkboxes: type to find a stack, press
-  **Enter** to add the first match, and remove entries from the selected list.
-  Category grouping and browsing are deferred.
+- The project skills picker is a combobox: typing opens a listbox of unused
+  stacks, arrow keys choose a result, **Enter** or a click adds it, and added
+  stacks become removable chips. Category grouping and browsing are deferred.
 - Project stack IDs that exist on a project but are missing from `v1/skill` are
   not shown as chips; preserving or dropping them on save remains open.
 - No field-level validation messages: required fields only disable **Save**, and
@@ -51,14 +51,15 @@ Open items only. Resolved work is in
 
 ## Settings
 
-- Category and skill creation are available, but edit/delete are not. The API
-  exposes delete endpoints; skill delete returns `409` while projects still
-  reference the skill.
+- Category create/rename/delete and skill create are available in Settings.
+  Skill edit/delete methods exist in `ProjectStackService` but have no UI yet;
+  skill delete returns `409` while projects still reference the skill. No
+  reorder endpoint or order field is exposed.
 - The skill form selects an existing category by name; it does not free-type or
   create a category inline. `imgSrc` is deliberately not exposed because the
   résumé uses derived letter marks.
-- A 401 during an admin create is handled by the interceptor (token cleared, gate
-  reopened, return to `/`); the page also shows its load/form error state.
+- A 401 during an admin write is handled by the interceptor (token cleared, gate
+  reopened, return to `/`); the page also shows its load/form/row error state.
 
 ## Résumé content
 

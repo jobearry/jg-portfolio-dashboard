@@ -186,17 +186,24 @@ parked, unrouted, source retained.
 
 - **Reach:** dashboard shell child route; utility link above the sidebar footer.
 - **Data:** `v1/skill-category` and `v1/skill` load in parallel through
-  `ProjectStackService`. Create forms post to `POST v1/admin/skill-category` and
-  `POST v1/admin/skill`; both require the JWT. The stack form selects an existing
-  category because the API resolves it by name.
+  `ProjectStackService`. Creates post to `POST v1/admin/skill-category` and
+  `POST v1/admin/skill`; rename calls `PUT v1/admin/skill-category/{id}` and
+  delete calls `DELETE v1/admin/skill-category/{id}`. All require the JWT. The
+  stack form selects an existing category because the API resolves it by name.
 - **States:** skeleton while loading, retryable error block for load failures,
-  empty messages for either catalog, and inline `role="alert"` form errors using
-  `ProblemDetails.detail ?? title`. No edit/delete controls.
-- **Shows:** Light/Dark segmented control with `aria-pressed`, category chips,
-  and stack rows with their category.
+  empty messages for either catalog, and inline `role="alert"` errors using
+  `ProblemDetails.detail ?? title`. Add errors stay at the form; row errors stay
+  with the affected category row. Skill edit/delete controls are absent.
+- **Shows:** Light/Dark segmented control with `aria-pressed`, category rows with
+  usage counts and row actions, and stack rows with their category.
 - **Interactions:** add category/stack appends the mapped response to the local
-  list; theme buttons call `ThemeService.set()` and persist the choice. The
-  account menu no longer changes theme.
+  list. **Edit** turns a category row into a rename form; **Save** sends the
+  trimmed name and updates the row, loaded skill categories, and the selected
+  create-form category. **Delete** opens an inline confirmation; cancelling
+  makes no request, while confirming removes the row. Categories with skills
+  show a usage count and cannot be deleted from the UI. Theme buttons call
+  `ThemeService.set()` and persist the choice. The account menu no longer
+  changes theme.
 
 ---
 

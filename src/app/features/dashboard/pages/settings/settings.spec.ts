@@ -60,6 +60,31 @@ describe('Settings', () => {
     fixture.detectChanges();
   }
 
+  const categoryRow = (id: number): HTMLElement | null =>
+    element().querySelector(`[data-category-id="${id}"]`);
+
+  function rowButton(row: HTMLElement, label: string): HTMLButtonElement {
+    const button = [...row.querySelectorAll('button')].find(
+      (candidate) => candidate.getAttribute('aria-label') === label,
+    ) as HTMLButtonElement | undefined;
+    if (!button) {
+      throw new Error(`Button labeled "${label}" not found`);
+    }
+    return button;
+  }
+
+  function clickRowButton(row: HTMLElement, label: string): void {
+    rowButton(row, label).click();
+    fixture.detectChanges();
+  }
+
+  function setCategoryDraft(row: HTMLElement, value: string): void {
+    const input = row.querySelector('[data-testid="category-edit-input"]') as HTMLInputElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
     localStorage.setItem('portfolio-theme', 'dark');
     await TestBed.configureTestingModule({
@@ -192,6 +217,178 @@ describe('Settings', () => {
     expect(rows.at(-1)?.textContent).toContain('Terraform');
     expect((byId('skill-name') as HTMLInputElement).value).toBe('');
     expect((byId('skill-category') as HTMLSelectElement).value).toBe('Cloud & Infrastructure');
+  });
+
+  it('updateCategory_WhenRenamed_PutsTrimmedNameAndReplacesRowAndSkills', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Edit category Frontend');
+    setCategoryDraft(categoryRow(1) as HTMLElement, '  UI  ');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Save category');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ category: 'UI' });
+    request.flush({ id: 1, category: 'UI' });
+
+    await settle();
+
+    const row = categoryRow(1) as HTMLElement;
+    expect(row.textContent).toContain('UI');
+    expect(row.textContent).not.toContain('Frontend');
+    expect(element().textContent).not.toContain('Frontend');
+
+    const angularRow = [...element().querySelectorAll('[data-testid="skill-row"]')].find((node) =>
+      node.textContent?.includes('Angular'),
+    ) as HTMLElement;
+    expect(angularRow.textContent).toContain('UI');
+  });
+
+  it('updateCategory_WhenSelectedCategoryRenamed_UpdatesSkillFormSelection', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    setValue('skill-category', 'Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Edit category Frontend');
+    setCategoryDraft(categoryRow(1) as HTMLElement, 'UI');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Save category');
+
+    http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`).flush({
+      id: 1,
+      category: 'UI',
+    });
+
+    await settle();
+
+    expect((byId('skill-category') as HTMLSelectElement).value).toBe('UI');
+  });
+
+  it('updateCategory_WhenDraftIsBlank_DoesNotCallApi', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Edit category Frontend');
+    setCategoryDraft(categoryRow(1) as HTMLElement, '   ');
+
+    const save = rowButton(categoryRow(1) as HTMLElement, 'Save category');
+    expect(save.disabled).toBe(true);
+    save.click();
+    fixture.detectChanges();
+
+    expect(http.match(`${environment.portfolioApi}/v1/admin/skill-category/1`)).toHaveLength(0);
+  });
+
+  it('updateCategory_WhenApiRejects_KeepsRowAndShowsInlineError', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Edit category Frontend');
+    setCategoryDraft(categoryRow(1) as HTMLElement, 'Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Save category');
+
+    http
+      .expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`)
+      .flush(
+        { title: 'Bad Request', detail: 'Category already exists.' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+    await settle();
+
+    expect(categoryRow(1)?.textContent).toContain('Frontend');
+    expect(element().querySelector('[data-testid="category-action-error"]')?.textContent).toContain(
+      'Category already exists.',
+    );
+    expect(categoryRow(1)?.querySelector('[data-testid="category-edit-input"]')).not.toBeNull();
+  });
+
+  it('deleteCategory_AfterConfirmation_DeletesAndRemovesRow', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Delete category Frontend');
+    expect(element().textContent).toContain('Delete Frontend?');
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Confirm delete category Frontend');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await settle();
+
+    expect(categoryRow(1)).toBeNull();
+    expect(element().textContent).not.toContain('Frontend');
+  });
+
+  it('deleteCategory_WhenSelectedCategoryDeleted_ClearsSkillFormSelection', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    setValue('skill-category', 'Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Delete category Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Confirm delete category Frontend');
+    http
+      .expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`)
+      .flush(null, { status: 204, statusText: 'No Content' });
+
+    await settle();
+
+    expect((byId('skill-category') as HTMLSelectElement).value).toBe('');
+  });
+
+  it('deleteCategory_WhenApiRejects_KeepsRowAndShowsInlineError', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Delete category Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Confirm delete category Frontend');
+
+    http
+      .expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`)
+      .flush(
+        { status: 409, title: 'Conflict', detail: 'Category is in use.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+
+    await settle();
+
+    expect(categoryRow(1)).not.toBeNull();
+    expect(element().querySelector('[data-testid="category-action-error"]')?.textContent).toContain(
+      'Category is in use.',
+    );
+    expect(categoryRow(1)?.querySelector('[data-testid="category-confirm-delete"]')).not.toBeNull();
+  });
+
+  it('deleteCategory_CancelConfirmation_MakesNoRequest', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    clickRowButton(categoryRow(1) as HTMLElement, 'Delete category Frontend');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Cancel delete category');
+
+    expect(element().textContent).not.toContain('Delete Frontend?');
+    expect(http.match(`${environment.portfolioApi}/v1/admin/skill-category/1`)).toHaveLength(0);
+  });
+
+  it('deleteCategory_WhenCategoryHasSkills_DisablesDelete', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    const row = categoryRow(1) as HTMLElement;
+    expect(rowButton(row, 'Delete category Frontend').disabled).toBe(true);
+    expect(row.textContent).toContain('Used by 1 stack');
   });
 
   it('theme_UsesSegmentedControlToSetLightAndDark', async () => {
