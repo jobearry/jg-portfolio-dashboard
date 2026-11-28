@@ -257,9 +257,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   stack picker with typeahead results, explicit load/save states, stack
   replacement via `PUT v1/admin/project/{id}/tech-stacks`, and **Back to
   timeline**. Unsaved stack selection survives a field save.
-- [x] Toolbox page with scrollable category and skills tables, each with
-  create/rename/delete, explicit loading, empty, error, and form-error states,
-  category usage counts, inline delete confirmation, and row-level errors.
+- [x] Toolbox page with scrollable category and skills tables, icon-only row
+  actions with tooltips and accessible labels, create/rename/delete, explicit
+  loading, empty, error, and form-error states, category usage counts, inline
+  delete confirmation, and row-level errors.
 - [x] Theme-only Settings page with a Light/Dark segmented control.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.

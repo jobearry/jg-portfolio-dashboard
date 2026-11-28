@@ -6,6 +6,8 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideCheck, lucidePencil, lucideTrash2, lucideX } from '@ng-icons/lucide';
 import { getApiErrorMessage, PageHeader, Skeleton, StateMessage } from '../../../../shared';
 import { ProjectStackService, SkillCategoryItem, TechStackItem } from '../../core';
 
@@ -19,7 +21,8 @@ interface ToolboxState {
 /** Catalog administration for tech stack categories and skills. */
 @Component({
   selector: 'app-toolbox',
-  imports: [PageHeader, Skeleton, StateMessage],
+  imports: [NgIcon, PageHeader, Skeleton, StateMessage],
+  providers: [provideIcons({ lucideCheck, lucidePencil, lucideTrash2, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './toolbox.html',
 })

@@ -115,19 +115,21 @@
                           type="submit"
                           data-testid="category-save"
                           aria-label="Save category"
+                          title="Save category"
                           [disabled]="!canSaveCategoryEdit()"
-                          class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md bg-accent-brand text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Save
+                          <ng-icon name="lucideCheck" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           aria-label="Cancel category edit"
+                          title="Cancel edit"
                           [disabled]="categoryActionId() === category.id"
-                          class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="cancelCategoryEdit()"
                         >
-                          Cancel
+                          <ng-icon name="lucideX" size="16" aria-hidden="true" />
                         </button>
                       </form>
                     } @else if (confirmingDeleteCategoryId() === category.id) {
@@ -136,20 +138,22 @@
                           type="button"
                           data-testid="category-confirm-delete"
                           [attr.aria-label]="'Confirm delete category ' + category.category"
+                          title="Confirm delete"
                           [disabled]="categoryActionId() === category.id"
-                          class="rounded-md bg-destructive px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="deleteCategory(category.id)"
                         >
-                          Delete
+                          <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           aria-label="Cancel delete category"
+                          title="Cancel delete"
                           [disabled]="categoryActionId() === category.id"
-                          class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="cancelCategoryDelete()"
                         >
-                          Cancel
+                          <ng-icon name="lucideX" size="16" aria-hidden="true" />
                         </button>
                       </div>
                     } @else {
@@ -157,22 +161,24 @@
                         <button
                           type="button"
                           [attr.aria-label]="'Edit category ' + category.category"
+                          title="Edit category"
                           [disabled]="categoryActionId() !== null"
-                          class="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="startCategoryEdit(category)"
                         >
-                          Edit
+                          <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           [attr.aria-label]="'Delete category ' + category.category"
+                          title="Delete category"
                           [disabled]="
                             categoryActionId() !== null || categoryUsage(category.category) > 0
                           "
-                          class="rounded-md border border-destructive/40 px-3 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-destructive/40 text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="startCategoryDelete(category)"
                         >
-                          Delete
+                          <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                         </button>
                       </div>
                     }
@@ -338,19 +344,21 @@
                           type="submit"
                           data-testid="skill-save"
                           aria-label="Save skill"
+                          title="Save stack"
                           [disabled]="!canSaveSkillEdit()"
-                          class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md bg-accent-brand text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Save
+                          <ng-icon name="lucideCheck" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           aria-label="Cancel skill edit"
+                          title="Cancel edit"
                           [disabled]="skillActionId() === skill.id"
-                          class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="cancelSkillEdit()"
                         >
-                          Cancel
+                          <ng-icon name="lucideX" size="16" aria-hidden="true" />
                         </button>
                       </form>
                       @if (
@@ -377,20 +385,22 @@
                           type="button"
                           data-testid="skill-confirm-delete"
                           [attr.aria-label]="'Confirm delete skill ' + skill.stackName"
+                          title="Confirm delete"
                           [disabled]="skillActionId() === skill.id"
-                          class="rounded-md bg-destructive px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md bg-destructive text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="deleteSkill(skill.id)"
                         >
-                          Delete
+                          <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           aria-label="Cancel delete skill"
+                          title="Cancel delete"
                           [disabled]="skillActionId() === skill.id"
-                          class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="cancelSkillDelete()"
                         >
-                          Cancel
+                          <ng-icon name="lucideX" size="16" aria-hidden="true" />
                         </button>
                       </div>
                       @if (
@@ -418,20 +428,22 @@
                         <button
                           type="button"
                           [attr.aria-label]="'Edit skill ' + skill.stackName"
+                          title="Edit stack"
                           [disabled]="skillActionId() !== null"
-                          class="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="startSkillEdit(skill)"
                         >
-                          Edit
+                          <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           [attr.aria-label]="'Delete skill ' + skill.stackName"
+                          title="Delete stack"
                           [disabled]="skillActionId() !== null"
-                          class="rounded-md border border-destructive/40 px-3 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-destructive/40 text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                           (click)="startSkillDelete(skill)"
                         >
-                          Delete
+                          <ng-icon name="lucideTrash2" size="16" aria-hidden="true" />
                         </button>
                       </div>
                       @if (

@@ -78,6 +78,12 @@ describe('Toolbox', () => {
     fixture.detectChanges();
   }
 
+  function expectIconButton(button: HTMLButtonElement, title: string): void {
+    expect(button.getAttribute('title')).toBe(title);
+    expect(button.querySelector('ng-icon')).not.toBeNull();
+    expect(button.textContent?.trim()).toBe('');
+  }
+
   function setCategoryDraft(row: HTMLElement, value: string): void {
     const input = row.querySelector('[data-testid="category-edit-input"]') as HTMLInputElement;
     input.value = value;
@@ -138,6 +144,67 @@ describe('Toolbox', () => {
     );
     expect(headers).toEqual(['Category', 'Usage', 'Actions']);
     expect(categoryTable.querySelectorAll('tbody [data-testid="category-row"]')).toHaveLength(2);
+  });
+
+  it('categoryActions_AreIconOnlyWithTooltips', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    const row = categoryRow(1) as HTMLElement;
+    expectIconButton(rowButton(row, 'Edit category Frontend'), 'Edit category');
+    expectIconButton(rowButton(row, 'Delete category Frontend'), 'Delete category');
+  });
+
+  it('skillActions_AreIconOnlyWithTooltips', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    const row = skillRow(1) as HTMLElement;
+    expectIconButton(rowButton(row, 'Edit skill Angular'), 'Edit stack');
+    expectIconButton(rowButton(row, 'Delete skill Angular'), 'Delete stack');
+  });
+
+  it('editAndSkillDeleteActions_AreIconOnlyWithTooltips', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(categoryRow(2) as HTMLElement, 'Edit category Cloud & Infrastructure');
+    expectIconButton(rowButton(categoryRow(2) as HTMLElement, 'Save category'), 'Save category');
+    expectIconButton(
+      rowButton(categoryRow(2) as HTMLElement, 'Cancel category edit'),
+      'Cancel edit',
+    );
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    expectIconButton(rowButton(skillRow(1) as HTMLElement, 'Save skill'), 'Save stack');
+    expectIconButton(rowButton(skillRow(1) as HTMLElement, 'Cancel skill edit'), 'Cancel edit');
+    clickRowButton(skillRow(1) as HTMLElement, 'Cancel skill edit');
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Delete skill Angular');
+    expectIconButton(
+      rowButton(skillRow(1) as HTMLElement, 'Confirm delete skill Angular'),
+      'Confirm delete',
+    );
+    expectIconButton(rowButton(skillRow(1) as HTMLElement, 'Cancel delete skill'), 'Cancel delete');
+  });
+
+  it('categoryDeleteActions_AreIconOnlyWithTooltips', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    clickRowButton(categoryRow(2) as HTMLElement, 'Delete category Cloud & Infrastructure');
+    expectIconButton(
+      rowButton(categoryRow(2) as HTMLElement, 'Confirm delete category Cloud & Infrastructure'),
+      'Confirm delete',
+    );
+    expectIconButton(
+      rowButton(categoryRow(2) as HTMLElement, 'Cancel delete category'),
+      'Cancel delete',
+    );
   });
 
   it('rendersUnusedCategory_ShowsDashUsage', async () => {

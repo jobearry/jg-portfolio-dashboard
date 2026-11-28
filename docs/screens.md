@@ -198,16 +198,18 @@ parked, unrouted, source retained.
 - **Shows:** **Skills / Toolbox** header (“Manage tech stacks and their
   categories”), plus scrollable tables for categories (Category, Usage,
   Actions) and skills (Stack, Category, Actions).
-- **Interactions:** add category/stack appends the mapped response to the local
-  list. **Edit** turns a category or stack row into an inline form. Category
-  **Save** sends the trimmed name and updates the row, loaded skill categories,
-  the selected create-form category, and any open stack edit category. Stack
-  **Save** sends the trimmed name, the existing `imgSrc`, and the selected
-  category, then replaces the row and the category usage counts. **Delete**
-  opens an inline confirmation in either row; cancelling makes no request,
-  while confirming removes the row. Categories with skills show a usage count
-  and cannot be deleted from the UI; unused categories show `—` in the Usage
-  column.
+- **Interactions:** row actions are icon-only buttons with native tooltips and
+  explicit `aria-label`s: pencil to edit, check to save, X to cancel, and trash
+  to delete or confirm. Add category/stack appends the mapped response to the
+  local list. **Edit** turns a category or stack row into an inline form.
+  Category **Save** sends the trimmed name and updates the row, loaded skill
+  categories, the selected create-form category, and any open stack edit
+  category. Stack **Save** sends the trimmed name, the existing `imgSrc`, and
+  the selected category, then replaces the row and the category usage counts.
+  **Delete** opens an inline confirmation in either row; cancelling makes no
+  request, while confirming removes the row. Categories with skills show a
+  usage count and cannot be deleted from the UI; unused categories show `—` in
+  the Usage column.
 
 ---
 
