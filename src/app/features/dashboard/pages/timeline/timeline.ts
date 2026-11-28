@@ -36,20 +36,19 @@ import { ExperienceForm } from './components/experience-form/experience-form';
         </div>
       } @else if (state().error) {
         <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
-      } @else if (state().content.length === 0) {
-        <app-state-message kind="empty" message="No experience has been published yet." />
       } @else {
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <app-page-header
-            eyebrow="Career"
-            title="Experience timeline"
-            description="Roles, responsibilities, and the projects I've worked on."
-          />
+        <app-page-header
+          eyebrow="Career"
+          title="Experience timeline"
+          description="Roles, responsibilities, and the projects I've worked on."
+        />
 
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="text-sm text-muted-foreground">Manage experience entries and their projects.</p>
           <button
             type="button"
             aria-label="Add experience"
-            class="inline-flex w-fit items-center gap-2 rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            class="inline-flex items-center gap-2 rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             (click)="openAdd()"
           >
             <ng-icon name="lucidePlus" size="16" aria-hidden="true" />
@@ -57,83 +56,87 @@ import { ExperienceForm } from './components/experience-form/experience-form';
           </button>
         </div>
 
-        <ol class="relative space-y-6 border-l border-accent-brand/20 pl-8">
-          @for (experience of orderedExperiences(); track experience.id) {
-            <li class="relative">
-              <span
-                class="pointer-events-none absolute -left-[38px] top-6 size-3 rounded-full bg-accent-brand ring-4 ring-background"
-                aria-hidden="true"
-              ></span>
-              <article
-                class="flex min-h-64 flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:border-accent-brand/40 hover:shadow-md"
-              >
-                <div class="flex flex-1 flex-col gap-4 p-5 sm:p-6">
-                  <div class="flex items-start justify-between gap-4">
-                    <div class="flex min-w-0 flex-col gap-1">
-                      <h3
-                        class="text-xl font-semibold tracking-tight text-foreground"
-                        [textContent]="experience.company"
-                      ></h3>
-                      <p class="text-sm font-medium text-muted-foreground">
-                        {{ experience.role }}
-                      </p>
+        @if (state().content.length === 0) {
+          <app-state-message kind="empty" message="No experience has been published yet." />
+        } @else {
+          <ol class="relative space-y-6 border-l border-accent-brand/20 pl-8">
+            @for (experience of orderedExperiences(); track experience.id) {
+              <li class="relative">
+                <span
+                  class="pointer-events-none absolute -left-[38px] top-6 size-3 rounded-full bg-accent-brand ring-4 ring-background"
+                  aria-hidden="true"
+                ></span>
+                <article
+                  class="flex min-h-64 flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:border-accent-brand/40 hover:shadow-md"
+                >
+                  <div class="flex flex-1 flex-col gap-4 p-5 sm:p-6">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="flex min-w-0 flex-col gap-1">
+                        <h3
+                          class="text-xl font-semibold tracking-tight text-foreground"
+                          [textContent]="experience.company"
+                        ></h3>
+                        <p class="text-sm font-medium text-muted-foreground">
+                          {{ experience.role }}
+                        </p>
+                      </div>
+
+                      <div class="flex shrink-0 items-center gap-2">
+                        <a
+                          [routerLink]="['/dashboard/experience', experience.id, 'projects']"
+                          title="View projects"
+                          [attr.aria-label]="'View projects at ' + experience.company"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                          <ng-icon name="lucideFolderOpen" size="16" aria-hidden="true" />
+                        </a>
+
+                        <button
+                          type="button"
+                          title="Edit experience"
+                          [attr.aria-label]="'Edit experience at ' + experience.company"
+                          class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          (click)="openEdit(experience)"
+                        >
+                          <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div class="flex shrink-0 items-center gap-2">
-                      <a
-                        [routerLink]="['/dashboard/experience', experience.id, 'projects']"
-                        title="View projects"
-                        [attr.aria-label]="'View projects at ' + experience.company"
-                        class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                      >
-                        <ng-icon name="lucideFolderOpen" size="16" aria-hidden="true" />
-                      </a>
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      @if (period(experience); as range) {
+                        <span
+                          class="w-fit rounded-full border border-accent-brand/30 bg-accent-brand/10 px-3 py-1 font-medium text-accent-brand tabular-nums"
+                        >
+                          {{ range }}
+                        </span>
+                      }
+                      @if (experience.type) {
+                        <span
+                          class="w-fit rounded-full border border-border bg-muted/50 px-2.5 py-1 font-medium"
+                        >
+                          {{ experience.type }}
+                        </span>
+                      }
+                      @if (durationLabel(experience); as duration) {
+                        <span>{{ duration }}</span>
+                      }
+                    </div>
 
-                      <button
-                        type="button"
-                        title="Edit experience"
-                        [attr.aria-label]="'Edit experience at ' + experience.company"
-                        class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:border-accent-brand hover:text-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                        (click)="openEdit(experience)"
-                      >
-                        <ng-icon name="lucidePencil" size="16" aria-hidden="true" />
-                      </button>
+                    <div class="flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
+                      @if (experience.description) {
+                        <p>{{ experience.description }}</p>
+                      }
+                      @if (experience.responsibility) {
+                        <p>{{ experience.responsibility }}</p>
+                      }
                     </div>
                   </div>
-
-                  <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    @if (period(experience); as range) {
-                      <span
-                        class="w-fit rounded-full border border-accent-brand/30 bg-accent-brand/10 px-3 py-1 font-medium text-accent-brand tabular-nums"
-                      >
-                        {{ range }}
-                      </span>
-                    }
-                    @if (experience.type) {
-                      <span
-                        class="w-fit rounded-full border border-border bg-muted/50 px-2.5 py-1 font-medium"
-                      >
-                        {{ experience.type }}
-                      </span>
-                    }
-                    @if (durationLabel(experience); as duration) {
-                      <span>{{ duration }}</span>
-                    }
-                  </div>
-
-                  <div class="flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
-                    @if (experience.description) {
-                      <p>{{ experience.description }}</p>
-                    }
-                    @if (experience.responsibility) {
-                      <p>{{ experience.responsibility }}</p>
-                    }
-                  </div>
-                </div>
-              </article>
-            </li>
-          }
-        </ol>
+                </article>
+              </li>
+            }
+          </ol>
+        }
 
         @if (formOpen()) {
           <app-experience-form

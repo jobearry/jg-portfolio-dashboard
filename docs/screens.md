@@ -52,21 +52,24 @@ Live screens: how they're reached, what they render, data source, interactions.
   fetch projects.
 - **Order:** `startedAt` newest first; invalid dates after valid ones.
 - **States:** `app-skeleton` (`text` + `list`) while loading; shared error block
-  with **Try again**; empty message when no experience.
+  with **Try again**; empty message when no experience. The page header and add
+  toolbar stay visible in the empty state so the first entry can be created.
 - **Shows:** per experience — company (`h3`), optional `type` badge, role,
   `start – end` range (or `Present`) with duration line, description, and
   responsibility. Projects are reached through a separate route, not shown
   inline.
-- **Layout:** a single ordered vertical timeline in a centered column with wider
-  responsive gutters and a continuous accent rail with one node per experience
-  entry. Each entry contains an equal-height bordered card that leads with company
-  and role, groups the period, type, and duration as metadata, and places two
-  icon-only actions in the upper-right corner: **View projects** and edit. Both
-  show their name as a native tooltip and keep an `aria-label`
-  (`features/dashboard/pages/timeline/timeline.ts`).
+- **Layout:** a standalone page header, followed by a separate toolbar with
+  guidance and the **Add experience** button, matching the per-experience
+  projects page. Below that, a single ordered vertical timeline in a centered
+  column with wider responsive gutters and a continuous accent rail with one node
+  per experience entry. Each entry contains an equal-height bordered card that
+  leads with company and role, groups the period, type, and duration as
+  metadata, and places two icon-only actions in the upper-right corner: **View
+  projects** and edit. Both show their name as a native tooltip and keep an
+  `aria-label` (`features/dashboard/pages/timeline/timeline.ts`).
 - **Interactions:**
-  - Header **Add experience** and each card's upper-right pencil button
-    (`aria-label="Edit experience at {company}"`) open one modal form.
+  - The toolbar **Add experience** button and each card's upper-right pencil
+    button (`aria-label="Edit experience at {company}"`) open one modal form.
   - The form edits `company`, `role`, `startedAt`, `finishedAt`, `description`,
     `responsibility`, `type`; the first three are required. Native inputs and
     signals are used; `@angular/forms` is not installed.
@@ -129,17 +132,21 @@ Live screens: how they're reached, what they render, data source, interactions.
   after a successful field or stack save.
 - **Shows:** **Back to timeline**, project title, contribution, description, an
   icon-only pencil (`aria-label="Edit project details"`, `title="Edit project"`),
-  and the search-only stack picker with current stacks as removable chips.
+  and the combobox stack picker with current stacks as removable chips.
 - **Field edit:** the pencil swaps the details panel for the shared `ProjectForm`
   prefilled with `projectName`, `description`, and `contribution`. Saving sends
   only those three fields, keeps any unsaved stack selection intact, shows
   "Project details saved.", and closes the form. `400`/`404`/`503` appear in a
   form alert; `401` closes the form without a duplicate message because the
   auth interceptor owns gate navigation.
-- **Picker:** no checkboxes; type to search, press **Enter** to add the first
-  unused match, remove chips individually, or **Clear**. Unknown stack IDs that
-  the catalog does not return remain a deferred gap. The picker is busy while
-  fields are being saved.
+- **Picker:** a combobox with no checkboxes. Typing opens a listbox of unused
+  stacks whose names contain the query; the first result starts active.
+  **↑/↓** move the active option, **Enter** adds it, **Esc** closes the list, and
+  clicking an option adds it directly. Results carry combobox/listbox ARIA
+  attributes and an active-descendant reference. Added stacks become removable
+  chips; **Clear** empties the selection. Unknown stack IDs that the catalog
+  does not return remain a deferred gap. The picker is busy while fields are
+  being saved.
 - **Stack save:** enabled only when the selection differs from the loaded stacks
   and the field form is closed; calls `PUT v1/admin/project/{id}/tech-stacks`
   with `{ techStackIds }` and replaces the local project/chips from the returned

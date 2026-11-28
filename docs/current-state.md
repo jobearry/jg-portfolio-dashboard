@@ -238,10 +238,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   states, an Add project form (`POST`), **View project** links, and **Back to
   timeline**. Project rows have no inline edit action and read-only stack chips.
 - [x] Project details and skills screen at `/dashboard/project/:id` with mapped
-  project read, a pencil-triggered fields-only edit form (`PUT`), a search-only
-  stack picker, explicit load/save states, stack replacement via
-  `PUT v1/admin/project/{id}/tech-stacks`, and **Back to timeline**. Unsaved
-  stack selection survives a field save.
+  project read, a pencil-triggered fields-only edit form (`PUT`), a combobox
+  stack picker with typeahead results, explicit load/save states, stack
+  replacement via `PUT v1/admin/project/{id}/tech-stacks`, and **Back to
+  timeline**. Unsaved stack selection survives a field save.
 - [x] Settings page with create-only category/skill forms, explicit loading,
   empty, error, and form-error states, and a Light/Dark segmented control.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
@@ -252,11 +252,12 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
 Not present: delete UI, category/skill edit, in-app login/registration,
-search/filter/pagination, toasts, analytics, i18n. The search-only
-`StackPicker` lives on the project screen and writes through
-`ProjectStackService.replaceProjectStacks`; it is no longer rendered in the
-fields-only project form because the deployed project POST/PUT schemas reject
-`techStackIds`. The former projects modal is gone; its list is a normal route.
+global search/filter/pagination, toasts, analytics, i18n. The combobox
+`StackPicker` lives on the project screen, filters the local skill catalog, and
+writes through `ProjectStackService.replaceProjectStacks`; it is no longer
+rendered in the fields-only project form because the deployed project POST/PUT
+schemas reject `techStackIds`. The former projects modal is gone; its list is a
+normal route.
 `ProjectStackService` also serves Settings catalog reads and creates.
 
 ## Removed in 008

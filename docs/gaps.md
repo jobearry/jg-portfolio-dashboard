@@ -140,9 +140,6 @@ candidates:
   about 35 lines.
 - `features/dashboard/pages/timeline/timeline.ts` keeps a non-trivial template
   inline; move it to `timeline.html`.
-- `features/dashboard/pages/timeline/components/stack-picker/stack-picker.ts`
-  writes the search input value directly even though `[value]="search()"`
-  already clears it; remove the DOM write.
 - Route-id validation in the project and experience-projects screens is
   duplicated; a `parseRouteId` helper in `shared/utils` is the small fix. A
   generic load-state wrapper is not warranted.

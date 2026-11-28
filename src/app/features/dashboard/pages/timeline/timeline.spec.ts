@@ -199,11 +199,28 @@ describe('Timeline', () => {
     expect(element.querySelector('[role="dialog"]')).toBeFalsy();
   });
 
-  it('shows an empty state when there is no experience', async () => {
+  it('shows an empty state with the add action when there is no experience', async () => {
     const element = await render([]);
 
     expect(element.querySelector('[role="status"]')?.textContent).toContain('No experience');
     expect(element.querySelectorAll('li').length).toBe(0);
+    expect(element.querySelector('button[aria-label="Add experience"]')).not.toBeNull();
+  });
+
+  it('renders the add action in a toolbar separate from the page header', async () => {
+    const element = await render([base]);
+    const header = element.querySelector('app-page-header') as HTMLElement;
+    const button = element.querySelector('button[aria-label="Add experience"]') as HTMLElement;
+    const toolbar = button.parentElement as HTMLElement;
+
+    expect(header.contains(button)).toBe(false);
+    expect(header.parentElement).not.toBe(toolbar);
+    expect(toolbar.classList.contains('flex')).toBe(true);
+    expect(toolbar.classList.contains('flex-wrap')).toBe(true);
+    expect(toolbar.classList.contains('items-center')).toBe(true);
+    expect(toolbar.classList.contains('justify-between')).toBe(true);
+    expect(toolbar.querySelector('p')?.textContent).toContain('Manage experience entries');
+    expect(button.classList.contains('w-fit')).toBe(false);
   });
 
   it('renders a Present range and duration metadata for current roles', async () => {
@@ -214,7 +231,7 @@ describe('Timeline', () => {
     expect(element.textContent).toContain('Full-time');
   });
 
-  it('opens the add form from the header action', async () => {
+  it('opens the add form from the toolbar action', async () => {
     const fixture = await setup([base]);
     const element = fixture.nativeElement as HTMLElement;
 

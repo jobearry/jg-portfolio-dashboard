@@ -59,3 +59,4 @@ remain in git history. For what is true now, read
 | 050 | Settings route with create-only category/skill forms, theme segmented control, and hybrid résumé category order |
 | 051 | Separate project skills screen with mapped project read, search-only picker, and stack replacement |
 | 052 | Routed per-experience projects page; pencil field edit moved to the project screen |
+| 053 | Timeline add toolbar and combobox typeahead for the project stack picker |

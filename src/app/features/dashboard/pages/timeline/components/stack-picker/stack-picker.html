@@ -2,28 +2,53 @@
   @if (error()) {
     <app-state-message kind="error" [message]="error() ?? ''" (retry)="retry.emit()" />
   } @else {
-    <div>
+    <div class="relative">
       <label for="stack-search" class="block text-sm font-medium">Tech stacks</label>
+      <p id="stack-search-hint" class="sr-only">
+        Type to filter stacks. Use the arrow keys to choose a result, Enter to add it, and Escape to
+        close the list.
+      </p>
       <input
         id="stack-search"
-        type="search"
-        placeholder="Search stacks, then press Enter"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        aria-describedby="stack-search-hint"
+        [attr.aria-expanded]="open()"
+        [attr.aria-controls]="open() ? listboxId : null"
+        [attr.aria-activedescendant]="open() ? activeOptionId() : null"
+        autocomplete="off"
+        placeholder="Search stacks"
         [value]="search()"
         [disabled]="busy()"
         (input)="onSearch($event)"
-        (keydown.enter)="onEnter($event)"
+        (keydown)="onKeydown($event)"
         class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       />
 
-      @if (isSearching()) {
-        @if (match(); as found) {
-          <p class="mt-1 text-xs text-muted-foreground">
-            Press Enter to add
-            <span class="font-medium text-foreground">{{ found.stackName }}</span>
-          </p>
-        } @else {
-          <p class="mt-1 text-xs text-muted-foreground">No matching stack.</p>
-        }
+      @if (open()) {
+        <ul
+          [id]="listboxId"
+          role="listbox"
+          aria-label="Tech stack results"
+          class="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-card p-1 shadow-lg"
+        >
+          @for (stack of matches(); track stack.id) {
+            <li
+              [id]="optionId(stack.id)"
+              role="option"
+              [attr.aria-selected]="isActive(stack)"
+              [class]="isActive(stack) ? activeOptionClass : optionClass"
+              (mousedown)="$event.preventDefault()"
+              (click)="select(stack)"
+            >
+              {{ stack.stackName }}
+            </li>
+          }
+        </ul>
+      } @else if (hasQuery()) {
+        <p class="mt-1 text-xs text-muted-foreground">No matching stack.</p>
       }
     </div>
 
