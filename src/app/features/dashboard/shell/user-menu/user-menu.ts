@@ -1,5 +1,5 @@
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser } from '@ng-icons/lucide';
+import { lucideDownload, lucideLogOut, lucideUser } from '@ng-icons/lucide';
 import {
   Component,
   DestroyRef,
@@ -13,13 +13,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AuthTokenStore } from '../../../../core/auth/auth-token-store';
 import { site } from '../../../../core/config/site.config';
-import { ThemeService } from '../../../../core/theme/theme.service';
 import { ShellStateService } from '../shell-state.service';
 
 @Component({
   selector: 'app-user-menu',
   imports: [NgIcon, RouterLink],
-  providers: [provideIcons({ lucideDownload, lucideLogOut, lucideMoon, lucideSun, lucideUser })],
+  providers: [provideIcons({ lucideDownload, lucideLogOut, lucideUser })],
   host: {
     '(document:pointerdown)': 'onDocumentPointerDown($event)',
     '(document:keydown.escape)': 'onDocumentEscape()',
@@ -94,17 +93,6 @@ import { ShellStateService } from '../shell-state.service';
             type="button"
             role="menuitem"
             class="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
-            [attr.aria-label]="themeLabel()"
-            (click)="toggleTheme()"
-          >
-            <ng-icon [name]="themeIcon()" size="16" />
-            {{ themeLabel() }}
-          </button>
-
-          <button
-            type="button"
-            role="menuitem"
-            class="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none"
             (click)="lockDashboard()"
           >
             <ng-icon name="lucideLogOut" size="16" />
@@ -117,7 +105,6 @@ import { ShellStateService } from '../shell-state.service';
 })
 export class UserMenu {
   protected readonly site = site;
-  protected readonly theme = inject(ThemeService);
 
   private readonly auth = inject(AuthService);
   private readonly store = inject(AuthTokenStore);
@@ -137,12 +124,6 @@ export class UserMenu {
 
   protected readonly open = signal(false);
   protected readonly rail = computed(() => this.shell.isDesktop() && this.shell.collapsed());
-  protected readonly themeIcon = computed(() =>
-    this.theme.theme() === 'dark' ? 'lucideSun' : 'lucideMoon',
-  );
-  protected readonly themeLabel = computed(() =>
-    this.theme.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
-  );
   protected readonly expiresInMinutes = computed(() => {
     const expiresAt = this.store.expiresAt();
     return expiresAt === null ? null : Math.max(0, Math.ceil((expiresAt - this.now()) / 60_000));
@@ -165,11 +146,6 @@ export class UserMenu {
     if (restoreFocus) {
       this.trigger().nativeElement.focus();
     }
-  }
-
-  protected toggleTheme(): void {
-    this.theme.toggle();
-    this.close(true);
   }
 
   protected navigateToProfile(): void {

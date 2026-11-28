@@ -1,4 +1,11 @@
-import { lucideChartGantt, lucideLayoutDashboard, lucideRss, lucideUser } from '@ng-icons/lucide';
+import {
+  lucideChartGantt,
+  lucideLayoutDashboard,
+  lucideRss,
+  lucideSettings,
+  lucideToolbox,
+  lucideUser,
+} from '@ng-icons/lucide';
 
 export interface SidebarGroupMenu {
   title: string;
@@ -10,6 +17,8 @@ export const SIDEBAR_ICONS: Record<string, string> = {
   lucideRss,
   lucideLayoutDashboard,
   lucideChartGantt,
+  lucideSettings,
+  lucideToolbox,
   lucideUser,
 };
 
@@ -29,6 +38,11 @@ export const sidebarContent: SidebarGroupMenu[] = [
     url: '/blog',
     icon: 'lucideRss',
   },
+  {
+    title: 'Toolbox',
+    url: '/dashboard/toolbox',
+    icon: 'lucideToolbox',
+  },
 ];
 
 /**
@@ -41,4 +55,14 @@ export const resumeProfileLink: SidebarGroupMenu = {
   title: 'Profile',
   url: '/',
   icon: 'lucideUser',
+};
+
+/**
+ * Dashboard utility link. Kept outside the primary nav and rendered directly
+ * above the footer collapse control.
+ */
+export const settingsLink: SidebarGroupMenu = {
+  title: 'Settings',
+  url: '/dashboard/settings',
+  icon: 'lucideSettings',
 };

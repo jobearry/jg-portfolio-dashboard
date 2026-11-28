@@ -15,7 +15,9 @@ import { site } from '../../../../../core/config/site.config';
       aria-labelledby="about-heading"
       class="overflow-hidden rounded-lg border border-border bg-card"
     >
-      <div class="flex items-center gap-1.5 border-b border-border bg-background/40 px-5 py-2.5 sm:px-6">
+      <div
+        class="flex items-center gap-1.5 border-b border-border bg-background/40 px-5 py-2.5 sm:px-6"
+      >
         <span class="size-2 rounded-full bg-muted-foreground/30" aria-hidden="true"></span>
         <span class="size-2 rounded-full bg-muted-foreground/30" aria-hidden="true"></span>
         <span class="size-2 rounded-full bg-muted-foreground/30" aria-hidden="true"></span>

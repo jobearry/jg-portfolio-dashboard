@@ -52,3 +52,15 @@ remain in git history. For what is true now, read
 | 043 | Redesign QA, API model alignment, and cleanup |
 | 044 | JWT dashboard gate: token dialog, validation, guard, and lock control |
 | 045 | `exp`-based session expiry, 401 handling, auto-reopened gate, countdown |
+| 046 | JWT-gated experience add/edit modal, mapped DTO writes, timeline card refresh |
+| 047 | Per-experience projects modal, basic project creation, nested project mapping |
+| 048 | Grouped/searchable stack picker, stack catalog read, and project stack replacement |
+| 049 | Flat search-only picker; project add/edit with fields-only writes; icon-only edit action |
+| 050 | Settings route with create-only category/skill forms, theme segmented control, and hybrid résumé category order |
+| 051 | Separate project skills screen with mapped project read, search-only picker, and stack replacement |
+| 052 | Routed per-experience projects page; pencil field edit moved to the project screen |
+| 053 | Timeline add toolbar and combobox typeahead for the project stack picker |
+| 054 | Typed catalog update/delete API plumbing for Settings skill/category CRUD |
+| 055 | Settings category rename/delete with inline confirmation and usage counts |
+| 056 | Settings skill edit/recategorize/delete with inline confirmation and row errors |
+| 057 | Toolbox nav split: catalog CRUD moved to a primary-nav screen; Settings remains the theme-only utility link; `/settings` redirects to Toolbox |

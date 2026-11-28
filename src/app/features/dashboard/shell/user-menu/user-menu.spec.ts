@@ -47,21 +47,18 @@ describe('UserMenu', () => {
     expect(profileLink?.getAttribute('href')).toBe('/');
   });
 
-  it('switches the theme, then closes the menu', () => {
+  it('does not expose a theme action', () => {
     const { fixture, element, trigger } = create();
     trigger.click();
     fixture.detectChanges();
 
-    const themeItem = element.querySelector(
-      '[role="menu"] button[role="menuitem"]',
-    ) as HTMLButtonElement;
-    expect(themeItem.textContent).toContain('Switch to light mode');
+    const menuText = element.querySelector('[role="menu"]')?.textContent ?? '';
+    expect(menuText).not.toContain('Switch to');
+    expect(menuText).not.toContain('Theme');
 
-    themeItem.click();
-    fixture.detectChanges();
-
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(element.querySelector('[role="menu"]')).toBeFalsy();
+    const buttonItems = [...element.querySelectorAll<HTMLElement>('button[role="menuitem"]')];
+    expect(buttonItems).toHaveLength(1);
+    expect(buttonItems[0].textContent).toContain('Lock dashboard');
   });
 
   it('supports arrow navigation and Escape', async () => {

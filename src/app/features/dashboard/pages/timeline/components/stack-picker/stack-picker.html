@@ -1,0 +1,91 @@
+<div class="flex flex-col gap-3">
+  @if (error()) {
+    <app-state-message kind="error" [message]="error() ?? ''" (retry)="retry.emit()" />
+  } @else {
+    <div class="relative">
+      <label for="stack-search" class="block text-sm font-medium">Tech stacks</label>
+      <p id="stack-search-hint" class="sr-only">
+        Type to filter stacks. Use the arrow keys to choose a result, Enter to add it, and Escape to
+        close the list.
+      </p>
+      <input
+        id="stack-search"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        aria-describedby="stack-search-hint"
+        [attr.aria-expanded]="open()"
+        [attr.aria-controls]="open() ? listboxId : null"
+        [attr.aria-activedescendant]="open() ? activeOptionId() : null"
+        autocomplete="off"
+        placeholder="Search stacks"
+        [value]="search()"
+        [disabled]="busy()"
+        (input)="onSearch($event)"
+        (keydown)="onKeydown($event)"
+        class="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      />
+
+      @if (open()) {
+        <ul
+          [id]="listboxId"
+          role="listbox"
+          aria-label="Tech stack results"
+          class="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-border bg-card p-1 shadow-lg"
+        >
+          @for (stack of matches(); track stack.id) {
+            <li
+              [id]="optionId(stack.id)"
+              role="option"
+              [attr.aria-selected]="isActive(stack)"
+              [class]="isActive(stack) ? activeOptionClass : optionClass"
+              (mousedown)="$event.preventDefault()"
+              (click)="select(stack)"
+            >
+              {{ stack.stackName }}
+            </li>
+          }
+        </ul>
+      } @else if (hasQuery()) {
+        <p class="mt-1 text-xs text-muted-foreground">No matching stack.</p>
+      }
+    </div>
+
+    @if (selectedStacks().length > 0) {
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Selected
+          </span>
+          <button
+            type="button"
+            [disabled]="busy()"
+            class="text-xs font-medium text-accent-brand transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            (click)="clear()"
+          >
+            Clear
+          </button>
+        </div>
+        <ul class="flex flex-wrap gap-2">
+          @for (stack of selectedStacks(); track stack.id) {
+            <li
+              class="inline-flex items-center gap-2 rounded-md bg-accent-brand/10 px-2 py-1 text-xs font-medium text-accent-brand"
+            >
+              {{ stack.stackName }}
+              <button
+                type="button"
+                [attr.aria-label]="'Remove ' + stack.stackName"
+                [disabled]="busy()"
+                class="rounded-sm leading-none transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                (click)="remove(stack.id)"
+              >
+                ×
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  }
+</div>
