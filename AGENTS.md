@@ -13,13 +13,14 @@ About, timeline, certifications, Recent Projects, and Technical Stack;
 `/projects` shows client-project cards and the full GitHub repository list.
 The dashboard lives under `/dashboard` and provides an overview, career
 timeline, a Notion-backed blog, a routed per-experience projects page, a project
-details and skills screen, and a Settings page. Data access is **read-only except
-for JWT-gated experience add/edit on `/timeline`, project creation from the
-per-experience projects page, project field edit and stack replacement on
-`/dashboard/project/:id`, plus create-only category/skill administration on
-`/dashboard/settings`**. The dashboard is gated by a JWT that the visitor pastes
-into the header dialog; the public résumé pages stay open. **View projects** on a
-timeline card opens `/dashboard/experience/:experienceId/projects`, where new
+details and skills screen, a Toolbox catalog screen, and a theme-only Settings
+page. Data access is **read-only except for JWT-gated experience add/edit on
+`/timeline`, project creation from the per-experience projects page, project
+field edit and stack replacement on `/dashboard/project/:id`, plus
+category/skill catalog administration on `/dashboard/toolbox`**. The dashboard
+is gated by a JWT that the visitor pastes into the header dialog; the public
+résumé pages stay open. **View projects** on a timeline card opens
+`/dashboard/experience/:experienceId/projects`, where new
 projects are created and existing ones link to `/dashboard/project/:id`. Project
 create/edit payloads stay fields-only; skills are managed on the project screen.
 The account menu contains session/account actions only; the Light/Dark theme
@@ -98,7 +99,8 @@ files. Never commit secrets.
    skeleton running forever.
 6. **Keep the routes.** `/` (résumé/profile), `/projects`, `/dashboard`,
    `/timeline`, `/dashboard/experience/:experienceId/projects`, `/blog`,
-   `/dashboard/project/:id`, `/dashboard/settings`, legacy `/profile` → `/`, and
+   `/dashboard/project/:id`, `/dashboard/toolbox`, `/dashboard/settings`,
+   legacy `/settings` → `/dashboard/toolbox`, legacy `/profile` → `/`, and
    wildcard → `/dashboard`. Titles and active states come from the router.
 7. **Tailwind only.** Reuse design tokens; accent `#912F56`; never build class
    names dynamically (`bg-${color}`); mobile-first.
@@ -120,9 +122,10 @@ These are real constraints and intentional gaps, not hypotheticals:
   The shell owns the empty path too, so the landing route must stay declared
   first with `pathMatch: 'full'`. `/` no longer redirects to `/dashboard`;
   **View profile** in the account menu links to `/`, and both résumé pages link
-  back to `/dashboard`. The Settings utility link sits directly above the
-  sidebar footer, which contains only the collapse control. Legacy `/profile`
-  redirects to `/`.
+  back to `/dashboard`. Toolbox joins the primary sidebar nav; the theme-only
+  Settings utility link sits directly above the sidebar footer, which contains
+  only the collapse control. Legacy `/settings` redirects to Toolbox, and legacy
+  `/profile` redirects to `/`.
 - `github/repos` is not implemented in the .NET API yet; the projects page shows
   its empty state until it is. The GitHub token lives on the API — never put one
   in the frontend environment.
@@ -155,7 +158,7 @@ The full definition of done is in `.opencode/rules/quality.md`.
 src/app/core/            # ApiClient, site config, theme, sidebar menu
 src/app/features/dashboard/
   shell/                 # sidebar + header + router outlet
-  pages/                 # overview, timeline, project, profile, blog, settings
+  pages/                 # overview, timeline, project, profile, blog, toolbox, settings
   core/                  # models
 src/app/features/resume/ # public landing page + projects (imported, 020)
   pages/home/            # résumé landing page

@@ -2,12 +2,12 @@
 
 Live screens: how they're reached, what they render, data source, interactions.
 
-## Shell (`/dashboard`, `/timeline`, `/dashboard/experience/:experienceId/projects`, `/blog`, `/dashboard/project/:id`, `/dashboard/settings`)
+## Shell (`/dashboard`, `/timeline`, `/dashboard/experience/:experienceId/projects`, `/blog`, `/dashboard/project/:id`, `/dashboard/toolbox`, `/dashboard/settings`)
 
 **Files:** `features/dashboard/shell/{dashboard,sidebar/header,user-menu,shell-state.service}`
 
-- Sidebar: avatar (name + role), menu (Dashboard/Timeline/Blog), Settings utility
-  link directly above the footer, then a footer with desktop-only collapse
+- Sidebar: avatar (name + role), menu (Dashboard/Timeline/Blog/Toolbox), Settings
+  utility link directly above the footer, then a footer with desktop-only collapse
   (16rem ↔ 4.5rem, persisted). Mobile: off-canvas panel
   below `md` with overlay, Escape, scroll lock, focus return.
 - Sticky header: mobile trigger + route title (`h1`) from `data.pageTitle`.
@@ -21,7 +21,7 @@ Live screens: how they're reached, what they render, data source, interactions.
 - **Access:** `authGuard` on the shell route sends visitors without a valid,
   unexpired JWT back to `/` and reopens the gate. Direct `/dashboard`,
   `/timeline`, `/dashboard/experience/:experienceId/projects`, `/blog`,
-  `/dashboard/project/:id`, and `/dashboard/settings` URLs are gated too; a
+  `/dashboard/project/:id`, `/dashboard/toolbox`, and `/dashboard/settings` URLs are gated too; a
   non-validation 401 does the same from inside the shell.
 
 ---
@@ -82,8 +82,8 @@ Live screens: how they're reached, what they render, data source, interactions.
     control, or `401` state to manage here; the auth interceptor owns 401s.
   - Project create/edit stay fields-only because the deployed API rejects
     `techStackIds` on the project POST/PUT bodies (both schemas set
-    `additionalProperties: false`). Categories and skills can be created on
-    `/dashboard/settings`. Projects and `durationMonths` are not editable in the
+    `additionalProperties: false`). Categories and skills can be managed on
+    `/dashboard/toolbox`. Projects and `durationMonths` are not editable in the
     experience form. Delete is not implemented.
 
 ---
@@ -180,11 +180,11 @@ parked, unrouted, source retained.
 
 ---
 
-## 7. Settings — `/dashboard/settings`
+## 7. Toolbox — `/dashboard/toolbox`
 
-**Files:** `features/dashboard/pages/settings/{ts,html}`
+**Files:** `features/dashboard/pages/toolbox/{ts,html}`
 
-- **Reach:** dashboard shell child route; utility link above the sidebar footer.
+- **Reach:** primary nav link below Blog; legacy `/settings` redirects here.
 - **Data:** `v1/skill-category` and `v1/skill` load in parallel through
   `ProjectStackService`. Creates post to `POST v1/admin/skill-category` and
   `POST v1/admin/skill`; renames and deletes call the matching category or skill
@@ -195,24 +195,34 @@ parked, unrouted, source retained.
   `ProblemDetails.detail ?? title`. Add errors stay at their form; row errors
   stay with the affected category or stack row, including a skill `409` when a
   project still references it.
-- **Shows:** Light/Dark segmented control with `aria-pressed`, category rows with
-  usage counts and row actions, and stack rows with their category and row
-  actions.
+- **Shows:** category rows with usage counts and row actions, and stack rows with
+  their category and row actions.
 - **Interactions:** add category/stack appends the mapped response to the local
   list. **Edit** turns a category or stack row into an inline form. Category
   **Save** sends the trimmed name and updates the row, loaded skill categories,
   the selected create-form category, and any open stack edit category. Stack
-  **Save** sends the trimmed name,
-  the existing `imgSrc`, and the selected category, then replaces the row and
-  the category usage counts. **Delete** opens an inline confirmation in either
-  row; cancelling makes no request, while confirming removes the row. Categories
-  with skills show a usage count and cannot be deleted from the UI. Theme
-  buttons call `ThemeService.set()` and persist the choice. The account menu no
-  longer changes theme.
+  **Save** sends the trimmed name, the existing `imgSrc`, and the selected
+  category, then replaces the row and the category usage counts. **Delete**
+  opens an inline confirmation in either row; cancelling makes no request,
+  while confirming removes the row. Categories with skills show a usage count
+  and cannot be deleted from the UI.
 
 ---
 
-## 8. Résumé landing — `/`
+## 8. Settings — `/dashboard/settings`
+
+**Files:** `features/dashboard/pages/settings/{ts,html}`
+
+- **Reach:** utility link above the sidebar footer.
+- **Data:** none; appearance is owned by `ThemeService`. Catalog administration
+  lives on Toolbox.
+- **Shows:** a Light/Dark segmented control with `aria-pressed`.
+- **Interactions:** theme buttons call `ThemeService.set()` and persist the
+  choice. The account menu no longer changes theme.
+
+---
+
+## 9. Résumé landing — `/`
 
 **File:** `features/resume/pages/home/{ui/home.ts,html}`
 
@@ -237,7 +247,7 @@ parked, unrouted, source retained.
 
 ---
 
-## 9. Projects — `/projects`
+## 10. Projects — `/projects`
 
 **File:** `features/resume/pages/projects/{ui/projects.ts,html}`
 
@@ -253,7 +263,7 @@ parked, unrouted, source retained.
 
 ---
 
-## 10. Dashboard gate (token dialog)
+## 11. Dashboard gate (token dialog)
 
 **Files:** `features/resume/components/dashboard-link/{dashboard-link.ts,dashboard-link.html}`,
 `core/auth/{auth-token-store,auth.service,auth.interceptor,auth.guard,auth-gate.service}`
@@ -272,13 +282,14 @@ parked, unrouted, source retained.
   and the visitor returns to `/`. Server 401s outside `/auth/me` do the same;
   validation 401s remain in the dialog.
 - **Direct URLs:** `authGuard` redirects `/dashboard`, `/timeline`, `/blog`,
-  `/dashboard/experience/:experienceId/projects`, `/dashboard/project/:id`, and
-  `/dashboard/settings` to `/` when the token is missing or expired.
+  `/dashboard/experience/:experienceId/projects`, `/dashboard/project/:id`,
+  `/dashboard/toolbox`, and `/dashboard/settings` to `/` when the token is
+  missing or expired.
 - **Exit:** **Lock dashboard** in the user menu clears the token and returns to
   `/`.
 
 ---
 
-## 11. Fallback
+## 12. Fallback
 
 Unknown child path → `redirectTo: "dashboard"` (then `authGuard` applies).

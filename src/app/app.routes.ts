@@ -65,13 +65,19 @@ export const routes: Routes = [
       {
         path: 'settings',
         pathMatch: 'full',
-        redirectTo: 'dashboard/settings',
+        redirectTo: 'dashboard/toolbox',
       },
       {
         path: 'dashboard/settings',
         loadComponent: () =>
           import('./features/dashboard/pages/settings/settings').then((m) => m.Settings),
         ...page('Settings'),
+      },
+      {
+        path: 'dashboard/toolbox',
+        loadComponent: () =>
+          import('./features/dashboard/pages/toolbox/toolbox').then((m) => m.Toolbox),
+        ...page('Toolbox'),
       },
       {
         path: '',

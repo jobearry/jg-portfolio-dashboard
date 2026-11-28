@@ -15,7 +15,7 @@ import {
   UpdateSkillRequest,
 } from '../models/techstack-write';
 
-/** Owns the category/skill catalog and the admin writes for Settings. */
+/** Owns the category/skill catalog and the admin writes for Toolbox. */
 @Injectable({ providedIn: 'root' })
 export class ProjectStackService {
   private readonly api = inject(ApiClient);

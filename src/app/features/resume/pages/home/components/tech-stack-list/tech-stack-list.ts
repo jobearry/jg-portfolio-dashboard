@@ -17,7 +17,7 @@ interface SkillGroup {
   index: string;
 }
 
-/** Known categories keep their master order; categories added through Settings
+/** Known categories keep their master order; categories added through Toolbox
  *  are appended in first-seen API order. Only the first three show by default. */
 const CATEGORY_ORDER: readonly string[] = [
   'Frontend',
