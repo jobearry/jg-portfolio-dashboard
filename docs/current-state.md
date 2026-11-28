@@ -1,7 +1,8 @@
 # Current State
 
 Angular SPA after the Tailwind rewrite (002–008). Mostly read-only data with
-JWT-gated admin writes on Timeline and Settings; no server code in this repository.
+JWT-gated admin writes on Timeline, Toolbox, and the project screen; no server
+code in this repository.
 
 ## Stack
 
@@ -30,7 +31,8 @@ src/main.ts → App → app.routes.ts
       experience/:experienceId/projects → Projects by experience
       blog      → Blog
       project/:id → Project details + skills
-      settings  → Settings
+      toolbox   → Toolbox (category/skill catalog)
+      settings  → Settings (appearance only)
       **        → dashboard
 ```
 
@@ -51,8 +53,9 @@ Icons are registered per component. There are no retries or timeouts.
 | `blog` | Blog | `Blog \| Jonathan Golimlim` | |
 | `dashboard/experience/:experienceId/projects` | Projects by experience | `Projects \| Jonathan Golimlim` | Reached from Timeline → View projects |
 | `dashboard/project/:id` | Project details + skills | `Project \| Jonathan Golimlim` | Reached from the projects page; Back → Timeline |
-| `settings` | redirect → `dashboard/settings` | — | Legacy alias |
-| `dashboard/settings` | Settings | `Settings \| Jonathan Golimlim` | Create-only admin + theme |
+| `settings` | redirect → `dashboard/toolbox` | — | Legacy alias |
+| `dashboard/toolbox` | Toolbox | `Toolbox \| Jonathan Golimlim` | Category/skill catalog CRUD |
+| `dashboard/settings` | Settings | `Settings \| Jonathan Golimlim` | Theme only; utility sidebar link |
 | `**` | redirect → `dashboard` | — | Child wildcard |
 
 Order matters: the résumé routes are declared above the shell because both
@@ -68,15 +71,20 @@ close), `shell-state.service.ts` (signals + scroll lock), `sidebar/`, `header/`,
 - Header title = deepest route `data.pageTitle`; first load, deep links, and
   back/forward are correct.
 - Sidebar items: Dashboard (`/dashboard`), Timeline (`/timeline`), Blog
-  (`/blog`); active via `routerLinkActive` exact + `aria-current="page"`.
-  Settings (`/dashboard/settings`) is a utility link directly above the footer,
-  outside the primary nav.
+  (`/blog`), Toolbox (`/dashboard/toolbox`); active via `routerLinkActive`
+  exact + `aria-current="page"`. Settings (`/dashboard/settings`) is a utility
+  link directly above the footer, outside the primary nav.
 - Footer holds only the desktop collapse control (16rem ↔ 4.5rem, persisted in
   `localStorage`). Mobile: off-canvas 18rem panel below `md`, overlay, Escape,
   scroll lock, focus return.
 - Avatar dropdown: session countdown (whole minutes), **View profile** (`/`),
   **Download CV**, **Lock dashboard** (clears the JWT and returns to `/`).
   Keyboard and outside-click handling included. Theme selection moved to Settings.
+
+Dashboard content pages use a shared centered `max-w-5xl` column with
+responsive gutters (`px-2 py-3`, `sm:px-6 sm:py-5`, `lg:px-10`): `overview.html`,
+`timeline.ts`, `experience-projects.html`, `project.html`, `blog.html`,
+`toolbox.html`, and `settings.html` under `features/dashboard/pages/`.
 
 Shared UI in `src/app/shared/ui/`: `page-header`, `state-message` (error/empty
 with **Try again**), `skeleton` (text/card/list/grid/entries, `role="status"`).
@@ -128,13 +136,14 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 - `ResourceSignalService<T>` — single-object counterpart for count endpoints.
 - `getErrorMessage` / `getApiErrorMessage` (`shared/utils/error.util.ts`) —
   status-based fallback and `ProblemDetails.detail ?? title` for admin forms.
-- `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`; all send JSON headers and
-  are the only HTTP boundary used by services.
+- `ApiClient` — `get<T>` plus typed `post<T>`/`put<T>`/`delete<T>`; all send JSON
+  headers and are the only HTTP boundary used by services.
 - Entity services (`providedIn: 'root'`): `OverviewSignalService`,
   `ExperienceSignalService`, `ExperienceAdminService` (mapped reload, project
   read, and admin writes for experiences and project fields),
-  `ProjectStackService` (category/skill catalog reads, Settings creates, and
-  project stack replacement), `SkillsSignalService`,
+  `ProjectStackService` (category/skill catalog reads, Toolbox creates,
+  typed catalog updates/deletes, and project stack replacement),
+  `SkillsSignalService`,
   `RecommendationService`, `GithubCountSignalService`, `NotionCountSignalService`,
   `GithubRepoSignalService`, `ResumeProjectSignalService`, `NotionSignalService`.
 
@@ -155,17 +164,25 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `POST v1/admin/experience/{experienceId}/project` | Projects page Add form | `ProjectDto` (Bearer required) |
 | `PUT v1/admin/project/{id}` | Project details field edit | `ProjectDto` (Bearer required) |
 | `PUT v1/admin/project/{id}/tech-stacks` | Project skills editor | `ProjectDto` (Bearer required) |
-| `v1/skill` | Résumé Home, Settings, project screen | `TechStackItem[]` |
-| `v1/skill-category` | Settings | `SkillCategoryItem[]` |
-| `POST v1/admin/skill-category` | Settings add-category form | `SkillCategoryDto` (Bearer required) |
-| `POST v1/admin/skill` | Settings add-stack form | `TechStackDto` (Bearer required) |
+| `v1/skill` | Résumé Home, Toolbox, project screen | `TechStackItem[]` |
+| `v1/skill-category` | Toolbox | `SkillCategoryItem[]` |
+| `POST v1/admin/skill-category` | Toolbox add-category form | `SkillCategoryDto` (Bearer required) |
+| `POST v1/admin/skill` | Toolbox add-stack form | `TechStackDto` (Bearer required) |
+| `PUT v1/admin/skill-category/{id}` | Toolbox rename form | `SkillCategoryDto` (Bearer required) |
+| `DELETE v1/admin/skill-category/{id}` | Toolbox delete confirmation | `204` (Bearer required) |
+| `PUT v1/admin/skill/{id}` | Toolbox edit form | `TechStackDto` (Bearer required) |
+| `DELETE v1/admin/skill/{id}` | Toolbox delete confirmation | `204` (Bearer required) |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
-`POST v1/admin/skill` resolves its category by name, so the Settings form selects
-an existing category instead of free-typing one. `PUT v1/admin/project/{id}/tech-stacks`
-is called only by the project screen; project create/edit stay fields-only
-because the deployed schemas reject `techStackIds`. Legacy
+`POST v1/admin/skill` and `PUT v1/admin/skill/{id}` resolve their category by
+name, so forms select an existing category instead of free-typing one. Skill
+edit preserves the loaded `imgSrc` because no form exposes it. Catalog deletes
+return `204`; skill delete returns `409` while a project still references the
+skill. No reorder endpoint or order field is exposed.
+`PUT v1/admin/project/{id}/tech-stacks` is called only by the project screen;
+project create/edit stay fields-only because the deployed schemas reject
+`techStackIds`. Legacy
 (`v1/portfolio/count`, `v1/portfolio/projects`,
 `v1/experience/{id}/projects`) are unused. `v1/auth/login` is called manually
 outside the app, not by any service. The GitHub token lives on the API.
@@ -194,9 +211,12 @@ outside the app, not by any service. The GitHub token lives on the API.
 - `TechStackItem { id, stackName, imgSrc, category }`
 - `SkillCategoryDto { id, category|null }` — nullable API category, mapped by
   `SkillCategoryMapper.fromDto` into `SkillCategoryItem { id, category }`
-- `SkillCategoryRequest { category|null }` — body of `POST v1/admin/skill-category`
+- `SkillCategoryRequest { category|null }` — body of category create and
+  `PUT v1/admin/skill-category/{id}`
 - `CreateSkillRequest { stackName, imgSrc, category }` — body of
   `POST v1/admin/skill`; category resolves by name
+- `UpdateSkillRequest { stackName, imgSrc, category }` — body of
+  `PUT v1/admin/skill/{id}`; category resolves by name
 - `ProblemDetails { type?, title?, status?, detail?, instance? }` — API error body
 - `FeedbackItem { id, personName, description, careerPosition, postedAt }`
 - `NotionPageCard { url, date, title }`
@@ -242,8 +262,11 @@ outside the app, not by any service. The GitHub token lives on the API.
   stack picker with typeahead results, explicit load/save states, stack
   replacement via `PUT v1/admin/project/{id}/tech-stacks`, and **Back to
   timeline**. Unsaved stack selection survives a field save.
-- [x] Settings page with create-only category/skill forms, explicit loading,
-  empty, error, and form-error states, and a Light/Dark segmented control.
+- [x] Toolbox page with scrollable category and skills tables, icon-only row
+  actions with tooltips and accessible labels, create/rename/delete, explicit
+  loading, empty, error, and form-error states, category usage counts, inline
+  delete confirmation, and row-level errors.
+- [x] Theme-only Settings page with a Light/Dark segmented control.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -251,14 +274,15 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: delete UI, category/skill edit, in-app login/registration,
-global search/filter/pagination, toasts, analytics, i18n. The combobox
+Not present: reorder UI, in-app login/registration, global search/filter/
+pagination, toasts, analytics, i18n. The combobox
 `StackPicker` lives on the project screen, filters the local skill catalog, and
 writes through `ProjectStackService.replaceProjectStacks`; it is no longer
 rendered in the fields-only project form because the deployed project POST/PUT
 schemas reject `techStackIds`. The former projects modal is gone; its list is a
 normal route.
-`ProjectStackService` also serves Settings catalog reads and creates.
+`ProjectStackService` serves all Toolbox catalog reads, creates, updates, and
+deletes.
 
 ## Removed in 008
 

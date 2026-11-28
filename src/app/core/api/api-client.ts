@@ -26,4 +26,9 @@ export class ApiClient {
     const url = `${this.baseUrl}/${endpoint}`;
     return await firstValueFrom(this.apiClient.put<T>(url, body, { headers: this.headers }));
   }
+
+  async delete<T>(endpoint: string) {
+    const url = `${this.baseUrl}/${endpoint}`;
+    return await firstValueFrom(this.apiClient.delete<T>(url, { headers: this.headers }));
+  }
 }

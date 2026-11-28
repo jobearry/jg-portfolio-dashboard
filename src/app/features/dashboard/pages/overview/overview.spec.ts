@@ -57,6 +57,24 @@ describe('Overview', () => {
     expect(cardFor(fixture, 'notionPages')?.textContent).toContain('23');
   });
 
+  it('uses the shared centered content column', async () => {
+    const fixture = TestBed.createComponent(Overview);
+    fixture.detectChanges();
+
+    flushOverview();
+    flushGithub();
+    flushNotion();
+
+    await settle(fixture);
+
+    const section = element(fixture).querySelector('section');
+    expect(section?.classList.contains('mx-auto')).toBe(true);
+    expect(section?.classList.contains('max-w-5xl')).toBe(true);
+    expect(section?.classList.contains('px-2')).toBe(true);
+    expect(section?.classList.contains('sm:px-6')).toBe(true);
+    expect(section?.classList.contains('lg:px-10')).toBe(true);
+  });
+
   it('renders an empty state when the API returns no metrics', async () => {
     const fixture = TestBed.createComponent(Overview);
     fixture.detectChanges();

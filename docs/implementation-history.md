@@ -60,3 +60,7 @@ remain in git history. For what is true now, read
 | 051 | Separate project skills screen with mapped project read, search-only picker, and stack replacement |
 | 052 | Routed per-experience projects page; pencil field edit moved to the project screen |
 | 053 | Timeline add toolbar and combobox typeahead for the project stack picker |
+| 054 | Typed catalog update/delete API plumbing for Settings skill/category CRUD |
+| 055 | Settings category rename/delete with inline confirmation and usage counts |
+| 056 | Settings skill edit/recategorize/delete with inline confirmation and row errors |
+| 057 | Toolbox nav split: catalog CRUD moved to a primary-nav screen; Settings remains the theme-only utility link; `/settings` redirects to Toolbox |

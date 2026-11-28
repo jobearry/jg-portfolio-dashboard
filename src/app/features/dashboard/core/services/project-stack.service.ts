@@ -12,9 +12,10 @@ import {
   SkillCategoryDto,
   SkillCategoryRequest,
   TechStackDto,
+  UpdateSkillRequest,
 } from '../models/techstack-write';
 
-/** Owns the category/skill catalog and the admin writes for Settings. */
+/** Owns the category/skill catalog and the admin writes for Toolbox. */
 @Injectable({ providedIn: 'root' })
 export class ProjectStackService {
   private readonly api = inject(ApiClient);
@@ -35,9 +36,28 @@ export class ProjectStackService {
     return SkillCategoryMapper.fromDto(dto);
   }
 
+  async updateCategory(id: number, category: string): Promise<SkillCategoryItem> {
+    const body: SkillCategoryRequest = { category };
+    const dto = await this.api.put<SkillCategoryDto>(`v1/admin/skill-category/${id}`, body);
+    return SkillCategoryMapper.fromDto(dto);
+  }
+
+  async deleteCategory(id: number): Promise<void> {
+    await this.api.delete<void>(`v1/admin/skill-category/${id}`);
+  }
+
   async createSkill(request: CreateSkillRequest): Promise<TechStackItem> {
     const dto = await this.api.post<TechStackDto>('v1/admin/skill', request);
     return TechStackMapper.fromDto(dto);
+  }
+
+  async updateSkill(id: number, request: UpdateSkillRequest): Promise<TechStackItem> {
+    const dto = await this.api.put<TechStackDto>(`v1/admin/skill/${id}`, request);
+    return TechStackMapper.fromDto(dto);
+  }
+
+  async deleteSkill(id: number): Promise<void> {
+    await this.api.delete<void>(`v1/admin/skill/${id}`);
   }
 
   async replaceProjectStacks(projectId: number, techStackIds: number[]): Promise<Project> {

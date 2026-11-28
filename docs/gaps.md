@@ -25,10 +25,11 @@ Open items only. Resolved work is in
 - Stacks on routed project-page rows are read-only. Project add/edit stay
   fields-only because the deployed API rejects `techStackIds` on
   `CreateProjectRequest`/`UpdateProjectRequest` (`additionalProperties: false`);
-  use **View project** to edit skills. Category/skill creation lives in Settings.
-- The project skills picker has no checkboxes: type to find a stack, press
-  **Enter** to add the first match, and remove entries from the selected list.
-  Category grouping and browsing are deferred.
+  use **View project** to edit skills. Category/skill catalog administration
+  lives in Toolbox.
+- The project skills picker is a combobox: typing opens a listbox of unused
+  stacks, arrow keys choose a result, **Enter** or a click adds it, and added
+  stacks become removable chips. Category grouping and browsing are deferred.
 - Project stack IDs that exist on a project but are missing from `v1/skill` are
   not shown as chips; preserving or dropping them on save remains open.
 - No field-level validation messages: required fields only disable **Save**, and
@@ -49,16 +50,24 @@ Open items only. Resolved work is in
 
 - No pagination, filtering, search, or post preview/excerpt.
 
+## Toolbox
+
+- Full category and skill create/rename/delete is available in Toolbox. Skill
+  delete returns `409` while projects still reference the skill; the row keeps
+  its inline error and confirmation state after that failure. No reorder
+  endpoint or order field is exposed. Categories with skills cannot be deleted
+  from the UI.
+- Skill create and edit select an existing category by name; neither form
+  free-types or creates a category inline. `imgSrc` is deliberately not exposed
+  because the résumé uses derived letter marks, and edits preserve its current
+  value.
+- A 401 during an admin write is handled by the interceptor (token cleared, gate
+  reopened, return to `/`); the page also shows its load/form/row error state.
+
 ## Settings
 
-- Category and skill creation are available, but edit/delete are not. The API
-  exposes delete endpoints; skill delete returns `409` while projects still
-  reference the skill.
-- The skill form selects an existing category by name; it does not free-type or
-  create a category inline. `imgSrc` is deliberately not exposed because the
-  résumé uses derived letter marks.
-- A 401 during an admin create is handled by the interceptor (token cleared, gate
-  reopened, return to `/`); the page also shows its load/form error state.
+- Settings is theme-only (Light/Dark); it has no catalog forms or API calls. It
+  remains the utility link directly above the sidebar collapse control.
 
 ## Résumé content
 
@@ -92,7 +101,7 @@ Open items only. Resolved work is in
 - A non-validation 401 clears the token, reopens the gate, and returns to `/`;
   the originating data request still shows its error state. An admin experience
   write closes its modal, and a project field write closes its inline editor, so
-  the gate owns the response without a duplicate message. Settings forms and the
+  the gate owns the response without a duplicate message. Toolbox forms and the
   project stack editor stay mounted and show the error while navigation is owned
   by the gate.
 - The token and expiry are held in `sessionStorage` and the token is sent on
@@ -115,8 +124,8 @@ Open items only. Resolved work is in
   `src/` is formatted.
 - CI runs lint → format check → build → test (`.github/workflows/ci.yml`).
 - Tests cover shell routing/state, user menu, portfolio service error contract,
-  theme behavior, and Overview/Timeline/Project/Blog/Settings screens plus
-  mapper and service contracts.
+  theme behavior, and Overview/Timeline/Project/Blog/Toolbox/Settings screens
+  plus mapper and service contracts.
 - `scripts/genenv.js` overwrites `src/environments/*.ts` on `start`/`build`
   from `.env`; missing values yield relative `/v1/...` calls. `dotenv` is an
   explicit dev dependency.
@@ -129,7 +138,7 @@ Open items only. Resolved work is in
 
 A read-only review after the routed projects work found no high-severity bloat;
 `experience-projects`, `stack-picker`, `project-form`, the entity services,
-`settings.ts`, and `user-menu.ts` are appropriately sized. Open cleanup
+`settings.ts`, `toolbox.ts`, and `user-menu.ts` are appropriately sized. Open cleanup
 candidates:
 
 - `features/dashboard/pages/project/project.{ts,html}` owns both field editing

@@ -1,195 +1,54 @@
 <section class="mx-auto flex w-full max-w-5xl flex-col gap-5 px-2 py-3 sm:px-6 sm:py-5 lg:px-10">
   <app-page-header
-    eyebrow="Administration"
+    eyebrow="Preferences"
     title="Settings"
-    description="Manage portfolio catalog data and your dashboard appearance."
+    description="Manage your dashboard appearance."
   />
 
-  @if (state().loading) {
-    <app-skeleton variant="text" [rows]="2" />
-    <app-skeleton variant="list" [rows]="3" />
-  } @else if (state().error) {
-    <app-state-message kind="error" [message]="state().error ?? ''" (retry)="load()" />
-  } @else {
-    <section
-      aria-labelledby="appearance-heading"
-      class="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:p-6"
-    >
-      <div>
-        <h3 id="appearance-heading" class="text-lg font-semibold text-foreground">Appearance</h3>
-        <p class="mt-1 text-sm text-muted-foreground">
-          Choose the color theme used across the dashboard and résumé.
-        </p>
-      </div>
+  <section
+    aria-labelledby="appearance-heading"
+    class="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:p-6"
+  >
+    <div>
+      <h3 id="appearance-heading" class="text-lg font-semibold text-foreground">Appearance</h3>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Choose the color theme used across the dashboard and résumé.
+      </p>
+    </div>
 
-      <div
-        role="group"
-        aria-label="Color theme"
-        class="inline-flex w-fit rounded-lg border border-border bg-muted/50 p-1"
+    <div
+      role="group"
+      aria-label="Color theme"
+      class="inline-flex w-fit rounded-lg border border-border bg-muted/50 p-1"
+    >
+      <button
+        id="theme-light"
+        type="button"
+        aria-label="Use light theme"
+        [attr.aria-pressed]="theme() === 'light'"
+        [class]="
+          theme() === 'light'
+            ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+            : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+        "
+        (click)="setTheme('light')"
       >
-        <button
-          id="theme-light"
-          type="button"
-          aria-label="Use light theme"
-          [attr.aria-pressed]="theme() === 'light'"
-          [class]="
-            theme() === 'light'
-              ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-              : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-          "
-          (click)="setTheme('light')"
-        >
-          Light
-        </button>
-        <button
-          id="theme-dark"
-          type="button"
-          aria-label="Use dark theme"
-          [attr.aria-pressed]="theme() === 'dark'"
-          [class]="
-            theme() === 'dark'
-              ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-              : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-          "
-          (click)="setTheme('dark')"
-        >
-          Dark
-        </button>
-      </div>
-    </section>
-
-    <section
-      aria-labelledby="categories-heading"
-      class="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:p-6"
-    >
-      <div>
-        <h3 id="categories-heading" class="text-lg font-semibold text-foreground">
-          Tech stack categories
-        </h3>
-        <p class="mt-1 text-sm text-muted-foreground">
-          Create a category before adding skills to it.
-        </p>
-      </div>
-
-      @if (categoryError()) {
-        <p
-          data-testid="category-error"
-          role="alert"
-          class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {{ categoryError() }}
-        </p>
-      }
-
-      <form data-testid="category-form" (submit)="addCategory($event)" class="flex flex-wrap gap-2">
-        <label for="category-name" class="sr-only">New category</label>
-        <input
-          id="category-name"
-          type="text"
-          placeholder="New category"
-          autocomplete="off"
-          [value]="categoryName()"
-          [disabled]="savingCategory()"
-          (input)="onCategoryNameInput($event)"
-          class="min-w-48 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          [disabled]="!canSaveCategory()"
-          class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {{ savingCategory() ? 'Adding…' : 'Add category' }}
-        </button>
-      </form>
-
-      @if (state().categories.length === 0) {
-        <app-state-message kind="empty" message="No categories yet." />
-      } @else {
-        <ul class="flex flex-wrap gap-2" aria-label="Tech stack categories">
-          @for (category of state().categories; track category.id) {
-            <li
-              data-testid="category-row"
-              class="rounded-full border border-border bg-muted/50 px-3 py-1 text-sm text-foreground"
-            >
-              {{ category.category }}
-            </li>
-          }
-        </ul>
-      }
-    </section>
-
-    <section
-      aria-labelledby="skills-heading"
-      class="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:p-6"
-    >
-      <div>
-        <h3 id="skills-heading" class="text-lg font-semibold text-foreground">Tech stacks</h3>
-        <p class="mt-1 text-sm text-muted-foreground">
-          Add a skill to an existing category. Image paths are not used by the résumé.
-        </p>
-      </div>
-
-      @if (skillError()) {
-        <p
-          data-testid="skill-error"
-          role="alert"
-          class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {{ skillError() }}
-        </p>
-      }
-
-      <form data-testid="skill-form" (submit)="addSkill($event)" class="flex flex-wrap gap-2">
-        <label for="skill-name" class="sr-only">Stack name</label>
-        <input
-          id="skill-name"
-          type="text"
-          placeholder="Stack name"
-          autocomplete="off"
-          [value]="skillName()"
-          [disabled]="savingSkill()"
-          (input)="onSkillNameInput($event)"
-          class="min-w-48 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
-
-        <label for="skill-category" class="sr-only">Category</label>
-        <select
-          id="skill-category"
-          [value]="selectedCategory()"
-          [disabled]="savingSkill() || state().categories.length === 0"
-          (change)="onCategoryChange($event)"
-          class="min-w-48 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="" disabled>Select a category</option>
-          @for (category of state().categories; track category.id) {
-            <option [value]="category.category">{{ category.category }}</option>
-          }
-        </select>
-
-        <button
-          type="submit"
-          [disabled]="!canSaveSkill()"
-          class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {{ savingSkill() ? 'Adding…' : 'Add stack' }}
-        </button>
-      </form>
-
-      @if (state().skills.length === 0) {
-        <app-state-message kind="empty" message="No tech stacks yet." />
-      } @else {
-        <ul class="grid gap-2 sm:grid-cols-2" aria-label="Tech stacks">
-          @for (skill of state().skills; track skill.id) {
-            <li
-              data-testid="skill-row"
-              class="flex items-center justify-between gap-3 rounded-md border border-border bg-background/50 px-3 py-2 text-sm"
-            >
-              <span class="font-medium text-foreground">{{ skill.stackName }}</span>
-              <span class="text-xs text-muted-foreground">{{ skill.category }}</span>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-  }
+        Light
+      </button>
+      <button
+        id="theme-dark"
+        type="button"
+        aria-label="Use dark theme"
+        [attr.aria-pressed]="theme() === 'dark'"
+        [class]="
+          theme() === 'dark'
+            ? 'rounded-md bg-background px-4 py-1.5 text-sm font-medium text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+            : 'rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+        "
+        (click)="setTheme('dark')"
+      >
+        Dark
+      </button>
+    </div>
+  </section>
 </section>

@@ -3,6 +3,7 @@ import {
   lucideLayoutDashboard,
   lucideRss,
   lucideSettings,
+  lucideToolbox,
   lucideUser,
 } from '@ng-icons/lucide';
 
@@ -17,6 +18,7 @@ export const SIDEBAR_ICONS: Record<string, string> = {
   lucideLayoutDashboard,
   lucideChartGantt,
   lucideSettings,
+  lucideToolbox,
   lucideUser,
 };
 
@@ -35,6 +37,11 @@ export const sidebarContent: SidebarGroupMenu[] = [
     title: 'Blog',
     url: '/blog',
     icon: 'lucideRss',
+  },
+  {
+    title: 'Toolbox',
+    url: '/dashboard/toolbox',
+    icon: 'lucideToolbox',
   },
 ];
 

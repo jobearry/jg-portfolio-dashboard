@@ -151,6 +151,7 @@ describe('App shell', () => {
       '/timeline',
       '/blog',
       '/dashboard/experience/1/projects',
+      '/dashboard/toolbox',
       '/dashboard/settings',
       '/dashboard/project/9',
     ]) {
@@ -159,7 +160,7 @@ describe('App shell', () => {
     }
 
     await router.navigateByUrl('/settings');
-    expect(router.url).toBe('/dashboard/settings');
+    expect(router.url).toBe('/dashboard/toolbox');
   });
 
   it('derives the header title from the active route', async () => {
@@ -174,7 +175,7 @@ describe('App shell', () => {
     expect(heading?.textContent?.trim()).toBe('Timeline');
   });
 
-  it('places the Settings link directly above the sidebar footer', async () => {
+  it('places Toolbox in the primary nav and Settings above the footer', async () => {
     const fixture = TestBed.createComponent(App);
     const router = TestBed.inject(Router);
 
@@ -183,15 +184,41 @@ describe('App shell', () => {
     fixture.detectChanges();
 
     const aside = (fixture.nativeElement as HTMLElement).querySelector('aside') as HTMLElement;
-    const settings = aside.querySelector('a[href="/dashboard/settings"]') as HTMLAnchorElement;
+    const primary = aside.querySelector('nav[aria-label="Primary"]') as HTMLElement;
+    const utilities = aside.querySelector('nav[aria-label="Utilities"]') as HTMLElement;
     const collapse = aside.querySelector(
       'button[aria-controls="shell-sidebar"]',
     ) as HTMLButtonElement;
 
-    expect(settings?.textContent).toContain('Settings');
+    expect(primary.querySelector('a[href="/dashboard/toolbox"]')?.textContent).toContain('Toolbox');
+    expect(primary.querySelector('a[href="/dashboard/settings"]')).toBeNull();
+
+    const settings = utilities.querySelector('a[href="/dashboard/settings"]') as HTMLAnchorElement;
+    expect(settings.textContent).toContain('Settings');
     expect(
       settings.compareDocumentPosition(collapse) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+  });
+
+  it('routes from the sidebar Toolbox link to /dashboard/toolbox', async () => {
+    const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/dashboard');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const link = element.querySelector(
+      'nav[aria-label="Primary"] a[href="/dashboard/toolbox"]',
+    ) as HTMLAnchorElement;
+    link.click();
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(router.url).toBe('/dashboard/toolbox');
+    expect(element.querySelector('app-toolbox')).toBeTruthy();
   });
 
   it('routes from the sidebar Settings link to /dashboard/settings', async () => {
@@ -203,7 +230,9 @@ describe('App shell', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    const link = element.querySelector('a[href="/dashboard/settings"]') as HTMLAnchorElement;
+    const link = element.querySelector(
+      'nav[aria-label="Utilities"] a[href="/dashboard/settings"]',
+    ) as HTMLAnchorElement;
     link.click();
 
     await fixture.whenStable();
@@ -211,6 +240,21 @@ describe('App shell', () => {
 
     expect(router.url).toBe('/dashboard/settings');
     expect(element.querySelector('app-settings')).toBeTruthy();
+  });
+
+  it('renders Settings without catalog forms', async () => {
+    const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/dashboard/settings');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-settings')).toBeTruthy();
+    expect(element.querySelector('[data-testid="category-form"]')).toBeNull();
+    expect(element.querySelector('[data-testid="skill-form"]')).toBeNull();
+    expect(element.querySelector('#theme-light')).toBeTruthy();
   });
 
   it('marks the active sidebar link with aria-current', async () => {
