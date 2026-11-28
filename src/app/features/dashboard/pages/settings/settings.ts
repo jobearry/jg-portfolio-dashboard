@@ -50,6 +50,13 @@ export class Settings implements OnInit {
   protected readonly confirmingDeleteCategoryId = signal<number | null>(null);
   protected readonly categoryActionError = signal<string | null>(null);
 
+  protected readonly editingSkillId = signal<number | null>(null);
+  protected readonly skillDraftName = signal('');
+  protected readonly skillDraftCategory = signal('');
+  protected readonly skillActionId = signal<number | null>(null);
+  protected readonly confirmingDeleteSkillId = signal<number | null>(null);
+  protected readonly skillActionError = signal<string | null>(null);
+
   protected readonly canSaveCategory = computed(
     () => !!this.categoryName().trim() && !this.savingCategory(),
   );
@@ -58,6 +65,12 @@ export class Settings implements OnInit {
   );
   protected readonly canSaveCategoryEdit = computed(
     () => !!this.categoryDraft().trim() && this.categoryActionId() === null,
+  );
+  protected readonly canSaveSkillEdit = computed(
+    () =>
+      !!this.skillDraftName().trim() &&
+      !!this.skillDraftCategory() &&
+      this.skillActionId() === null,
   );
 
   ngOnInit(): void {
@@ -69,6 +82,9 @@ export class Settings implements OnInit {
     this.editingCategoryId.set(null);
     this.confirmingDeleteCategoryId.set(null);
     this.categoryActionError.set(null);
+    this.editingSkillId.set(null);
+    this.confirmingDeleteSkillId.set(null);
+    this.skillActionError.set(null);
 
     try {
       const [categories, skills] = await Promise.all([
@@ -150,6 +166,9 @@ export class Settings implements OnInit {
       }));
       if (this.selectedCategory() === previousName) {
         this.selectedCategory.set(updated.category);
+      }
+      if (this.skillDraftCategory() === previousName) {
+        this.skillDraftCategory.set(updated.category);
       }
       this.editingCategoryId.set(null);
       this.categoryDraft.set('');
@@ -233,6 +252,105 @@ export class Settings implements OnInit {
       this.skillError.set(getApiErrorMessage(error));
     } finally {
       this.savingSkill.set(false);
+    }
+  }
+
+  protected startSkillEdit(skill: TechStackItem): void {
+    if (this.skillActionId() !== null) {
+      return;
+    }
+
+    this.confirmingDeleteSkillId.set(null);
+    this.skillActionError.set(null);
+    this.skillDraftName.set(skill.stackName ?? '');
+    this.skillDraftCategory.set(skill.category ?? '');
+    this.editingSkillId.set(skill.id);
+  }
+
+  protected cancelSkillEdit(): void {
+    this.editingSkillId.set(null);
+    this.skillDraftName.set('');
+    this.skillDraftCategory.set('');
+    this.skillActionError.set(null);
+  }
+
+  protected onSkillDraftNameInput(event: Event): void {
+    this.skillDraftName.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onSkillDraftCategoryChange(event: Event): void {
+    this.skillDraftCategory.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected async saveSkillEdit(id: number, event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.canSaveSkillEdit()) {
+      return;
+    }
+
+    const current = this.state().skills.find((skill) => skill.id === id);
+    const stackName = this.skillDraftName().trim();
+    const category = this.skillDraftCategory();
+
+    this.skillActionId.set(id);
+    this.skillActionError.set(null);
+
+    try {
+      const updated = await this.stacks.updateSkill(id, {
+        stackName,
+        imgSrc: current?.imgSrc ?? null,
+        category,
+      });
+      this.state.update((state) => ({
+        ...state,
+        skills: state.skills.map((skill) => (skill.id === id ? updated : skill)),
+      }));
+      this.editingSkillId.set(null);
+      this.skillDraftName.set('');
+      this.skillDraftCategory.set('');
+    } catch (error) {
+      this.skillActionError.set(getApiErrorMessage(error));
+    } finally {
+      this.skillActionId.set(null);
+    }
+  }
+
+  protected startSkillDelete(skill: TechStackItem): void {
+    if (this.skillActionId() !== null) {
+      return;
+    }
+
+    this.editingSkillId.set(null);
+    this.skillDraftName.set('');
+    this.skillDraftCategory.set('');
+    this.skillActionError.set(null);
+    this.confirmingDeleteSkillId.set(skill.id);
+  }
+
+  protected cancelSkillDelete(): void {
+    this.confirmingDeleteSkillId.set(null);
+    this.skillActionError.set(null);
+  }
+
+  protected async deleteSkill(id: number): Promise<void> {
+    if (this.skillActionId() !== null) {
+      return;
+    }
+
+    this.skillActionId.set(id);
+    this.skillActionError.set(null);
+
+    try {
+      await this.stacks.deleteSkill(id);
+      this.state.update((state) => ({
+        ...state,
+        skills: state.skills.filter((skill) => skill.id !== id),
+      }));
+      this.confirmingDeleteSkillId.set(null);
+    } catch (error) {
+      this.skillActionError.set(getApiErrorMessage(error));
+    } finally {
+      this.skillActionId.set(null);
     }
   }
 

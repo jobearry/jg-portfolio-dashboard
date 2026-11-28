@@ -295,14 +295,139 @@
       @if (state().skills.length === 0) {
         <app-state-message kind="empty" message="No tech stacks yet." />
       } @else {
-        <ul class="grid gap-2 sm:grid-cols-2" aria-label="Tech stacks">
+        <ul class="flex flex-col gap-2" aria-label="Tech stacks">
           @for (skill of state().skills; track skill.id) {
             <li
               data-testid="skill-row"
-              class="flex items-center justify-between gap-3 rounded-md border border-border bg-background/50 px-3 py-2 text-sm"
+              [attr.data-skill-id]="skill.id"
+              class="flex flex-col gap-2 rounded-md border border-border bg-background/50 px-3 py-2 text-sm"
             >
-              <span class="font-medium text-foreground">{{ skill.stackName }}</span>
-              <span class="text-xs text-muted-foreground">{{ skill.category }}</span>
+              @if (editingSkillId() === skill.id) {
+                <form
+                  class="flex flex-wrap items-center gap-2"
+                  (submit)="saveSkillEdit(skill.id, $event)"
+                >
+                  <label [attr.for]="'skill-edit-name-' + skill.id" class="sr-only">
+                    Edit {{ skill.stackName }}
+                  </label>
+                  <input
+                    [id]="'skill-edit-name-' + skill.id"
+                    data-testid="skill-edit-name"
+                    type="text"
+                    autocomplete="off"
+                    [value]="skillDraftName()"
+                    [disabled]="skillActionId() === skill.id"
+                    (input)="onSkillDraftNameInput($event)"
+                    class="min-w-48 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  <label [attr.for]="'skill-edit-category-' + skill.id" class="sr-only">
+                    Category for {{ skill.stackName }}
+                  </label>
+                  <select
+                    [id]="'skill-edit-category-' + skill.id"
+                    data-testid="skill-edit-category"
+                    [disabled]="skillActionId() === skill.id || state().categories.length === 0"
+                    (change)="onSkillDraftCategoryChange($event)"
+                    class="min-w-48 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:border-accent-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="" disabled [selected]="skillDraftCategory() === ''">
+                      Select a category
+                    </option>
+                    @for (category of state().categories; track category.id) {
+                      <option
+                        [value]="category.category"
+                        [selected]="skillDraftCategory() === category.category"
+                      >
+                        {{ category.category }}
+                      </option>
+                    }
+                  </select>
+                  <button
+                    type="submit"
+                    data-testid="skill-save"
+                    aria-label="Save skill"
+                    [disabled]="!canSaveSkillEdit()"
+                    class="rounded-md bg-accent-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Cancel skill edit"
+                    [disabled]="skillActionId() === skill.id"
+                    class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    (click)="cancelSkillEdit()"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              } @else if (confirmingDeleteSkillId() === skill.id) {
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    Delete <span class="font-medium">{{ skill.stackName }}</span
+                    >?
+                  </span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      data-testid="skill-confirm-delete"
+                      [attr.aria-label]="'Confirm delete skill ' + skill.stackName"
+                      [disabled]="skillActionId() === skill.id"
+                      class="rounded-md bg-destructive px-3 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="deleteSkill(skill.id)"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Cancel delete skill"
+                      [disabled]="skillActionId() === skill.id"
+                      class="rounded-md border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="cancelSkillDelete()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-medium text-foreground">{{ skill.stackName }}</span>
+                  <span class="text-xs text-muted-foreground">{{ skill.category }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Edit skill ' + skill.stackName"
+                      [disabled]="skillActionId() !== null"
+                      class="rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="startSkillEdit(skill)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Delete skill ' + skill.stackName"
+                      [disabled]="skillActionId() !== null"
+                      class="rounded-md border border-destructive/40 px-3 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      (click)="startSkillDelete(skill)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (
+                skillActionError() &&
+                (editingSkillId() === skill.id || confirmingDeleteSkillId() === skill.id)
+              ) {
+                <p
+                  data-testid="skill-action-error"
+                  role="alert"
+                  class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                >
+                  {{ skillActionError() }}
+                </p>
+              }
             </li>
           }
         </ul>

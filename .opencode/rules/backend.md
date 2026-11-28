@@ -18,9 +18,10 @@ is a separate codebase; this repository contains no server code.
   v1/admin/project/{id}/tech-stacks`), approved in history 051; and
   category/skill administration on `/dashboard/settings` (`POST
   v1/admin/skill-category`, `POST v1/admin/skill`), approved in history 050.
-  Settings also calls JWT-gated category update/delete methods through
-  `ProjectStackService`; skill edit/delete methods remain unused by the UI.
-  Reorder is not implemented because the API exposes no order field.
+  Settings also calls JWT-gated category and skill update/delete methods through
+  `ProjectStackService`. Skill update preserves the existing `imgSrc` and
+  resolves the selected category by name. Reorder is not implemented because the
+  API exposes no order field.
   Project create/edit payloads must stay fields-only because the deployed
   schemas reject `techStackIds`. Do not build other CRUD UI without an explicit
   decision. Auth validation is also a GET, with a Bearer token.

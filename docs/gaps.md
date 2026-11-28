@@ -51,13 +51,14 @@ Open items only. Resolved work is in
 
 ## Settings
 
-- Category create/rename/delete and skill create are available in Settings.
-  Skill edit/delete methods exist in `ProjectStackService` but have no UI yet;
-  skill delete returns `409` while projects still reference the skill. No
-  reorder endpoint or order field is exposed.
-- The skill form selects an existing category by name; it does not free-type or
-  create a category inline. `imgSrc` is deliberately not exposed because the
-  résumé uses derived letter marks.
+- Full category and skill create/rename/delete is available in Settings. Skill
+  delete returns `409` while projects still reference the skill; the row keeps
+  its inline error and confirmation state after that failure. No reorder
+  endpoint or order field is exposed.
+- Skill create and edit select an existing category by name; neither form
+  free-types or creates a category inline. `imgSrc` is deliberately not exposed
+  because the résumé uses derived letter marks, and edits preserve its current
+  value.
 - A 401 during an admin write is handled by the interceptor (token cleared, gate
   reopened, return to `/`); the page also shows its load/form/row error state.
 

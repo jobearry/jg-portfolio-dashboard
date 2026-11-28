@@ -62,3 +62,4 @@ remain in git history. For what is true now, read
 | 053 | Timeline add toolbar and combobox typeahead for the project stack picker |
 | 054 | Typed catalog update/delete API plumbing for Settings skill/category CRUD |
 | 055 | Settings category rename/delete with inline confirmation and usage counts |
+| 056 | Settings skill edit/recategorize/delete with inline confirmation and row errors |

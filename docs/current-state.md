@@ -162,15 +162,16 @@ handles non-validation 401s. No retries, timeouts, or error mapping.
 | `POST v1/admin/skill` | Settings add-stack form | `TechStackDto` (Bearer required) |
 | `PUT v1/admin/skill-category/{id}` | Settings rename form | `SkillCategoryDto` (Bearer required) |
 | `DELETE v1/admin/skill-category/{id}` | Settings delete confirmation | `204` (Bearer required) |
-| `PUT v1/admin/skill/{id}` | Service only (UI pending) | `TechStackDto` (Bearer required) |
-| `DELETE v1/admin/skill/{id}` | Service only (UI pending) | `204` (Bearer required) |
+| `PUT v1/admin/skill/{id}` | Settings edit form | `TechStackDto` (Bearer required) |
+| `DELETE v1/admin/skill/{id}` | Settings delete confirmation | `204` (Bearer required) |
 | `v1/notion/{site.notion.pageId}` | Blog | `NotionPageCard[]` |
 | `v1/auth/me` | `AuthService.verify` (Bearer required) | `AuthClaims` |
 
 `POST v1/admin/skill` and `PUT v1/admin/skill/{id}` resolve their category by
-name, so forms select an existing category instead of free-typing one. Catalog
-deletes return `204`; skill delete returns `409` while a project still
-references the skill. No reorder endpoint or order field is exposed.
+name, so forms select an existing category instead of free-typing one. Skill
+edit preserves the loaded `imgSrc` because no form exposes it. Catalog deletes
+return `204`; skill delete returns `409` while a project still references the
+skill. No reorder endpoint or order field is exposed.
 `PUT v1/admin/project/{id}/tech-stacks` is called only by the project screen;
 project create/edit stay fields-only because the deployed schemas reject
 `techStackIds`. Legacy
@@ -253,10 +254,10 @@ outside the app, not by any service. The GitHub token lives on the API.
   stack picker with typeahead results, explicit load/save states, stack
   replacement via `PUT v1/admin/project/{id}/tech-stacks`, and **Back to
   timeline**. Unsaved stack selection survives a field save.
-- [x] Settings page with category create/rename/delete, skill create, explicit
+- [x] Settings page with category and skill create/rename/delete, explicit
   loading, empty, error, and form-error states, and a Light/Dark segmented
-  control. Category rows show usage counts and use inline delete confirmation.
-  Typed skill update/delete methods exist but are not wired to the UI.
+  control. Category rows show usage counts. Both catalogs use inline delete
+  confirmation and row-level errors.
 - [x] Blog list (numbered, date, external icon, Notion URL rewrite).
 - [x] Résumé landing + projects pages.
 - [x] JWT gate: pasted token, `/auth/me` validation, `exp`-based expiry, route
@@ -264,15 +265,15 @@ outside the app, not by any service. The GitHub token lives on the API.
 - [x] Light/dark with persisted choice.
 - [x] External links `target="_blank"` + `rel="noopener noreferrer"`.
 
-Not present: skill edit/delete UI, reorder UI, in-app login/registration,
-global search/filter/pagination, toasts, analytics, i18n. The combobox
+Not present: reorder UI, in-app login/registration, global search/filter/
+pagination, toasts, analytics, i18n. The combobox
 `StackPicker` lives on the project screen, filters the local skill catalog, and
 writes through `ProjectStackService.replaceProjectStacks`; it is no longer
 rendered in the fields-only project form because the deployed project POST/PUT
 schemas reject `techStackIds`. The former projects modal is gone; its list is a
 normal route.
-`ProjectStackService` serves Settings catalog reads, creates, and category
-update/delete calls. Skill update/delete remain service-only for now.
+`ProjectStackService` serves all Settings catalog reads, creates, updates, and
+deletes.
 
 ## Removed in 008
 

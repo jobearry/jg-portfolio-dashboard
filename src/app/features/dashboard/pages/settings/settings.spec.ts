@@ -85,6 +85,23 @@ describe('Settings', () => {
     fixture.detectChanges();
   }
 
+  const skillRow = (id: number): HTMLElement | null =>
+    element().querySelector(`[data-skill-id="${id}"]`);
+
+  function setSkillDraftName(row: HTMLElement, value: string): void {
+    const input = row.querySelector('[data-testid="skill-edit-name"]') as HTMLInputElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  function setSkillDraftCategory(row: HTMLElement, value: string): void {
+    const select = row.querySelector('[data-testid="skill-edit-category"]') as HTMLSelectElement;
+    select.value = value;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
     localStorage.setItem('portfolio-theme', 'dark');
     await TestBed.configureTestingModule({
@@ -266,6 +283,41 @@ describe('Settings', () => {
     expect((byId('skill-category') as HTMLSelectElement).value).toBe('UI');
   });
 
+  it('updateCategory_WhenSkillEditIsOpen_UpdatesItsDraftCategorySelection', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Edit category Frontend');
+    setCategoryDraft(categoryRow(1) as HTMLElement, 'UI');
+    clickRowButton(categoryRow(1) as HTMLElement, 'Save category');
+
+    http.expectOne(`${environment.portfolioApi}/v1/admin/skill-category/1`).flush({
+      id: 1,
+      category: 'UI',
+    });
+
+    await settle();
+
+    const editCategory = skillRow(1)?.querySelector(
+      '[data-testid="skill-edit-category"]',
+    ) as HTMLSelectElement;
+    expect(editCategory.value).toBe('UI');
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Save skill');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/1`);
+    expect(request.request.body).toEqual({
+      stackName: 'Angular',
+      imgSrc: null,
+      category: 'UI',
+    });
+    request.flush({ id: 1, stackName: 'Angular', imgSrc: null, category: 'UI' });
+
+    await settle();
+  });
+
   it('updateCategory_WhenDraftIsBlank_DoesNotCallApi', async () => {
     render();
     flushInitial();
@@ -389,6 +441,164 @@ describe('Settings', () => {
     const row = categoryRow(1) as HTMLElement;
     expect(rowButton(row, 'Delete category Frontend').disabled).toBe(true);
     expect(row.textContent).toContain('Used by 1 stack');
+  });
+
+  it('updateSkill_WhenRenamedAndRecategorized_PutsNameImageAndCategoryThenUpdatesRow', async () => {
+    render();
+    flushInitial(categories, [
+      {
+        id: 1,
+        stackName: 'Angular',
+        imgSrc: 'https://img.example/angular.svg',
+        category: 'Frontend',
+      },
+    ]);
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    expect(
+      (skillRow(1)?.querySelector('[data-testid="skill-edit-category"]') as HTMLSelectElement)
+        .value,
+    ).toBe('Frontend');
+
+    setSkillDraftName(skillRow(1) as HTMLElement, '  Angular 2  ');
+    setSkillDraftCategory(skillRow(1) as HTMLElement, 'Cloud & Infrastructure');
+    clickRowButton(skillRow(1) as HTMLElement, 'Save skill');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/1`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      stackName: 'Angular 2',
+      imgSrc: 'https://img.example/angular.svg',
+      category: 'Cloud & Infrastructure',
+    });
+    request.flush({
+      id: 1,
+      stackName: 'Angular 2',
+      imgSrc: 'https://img.example/angular.svg',
+      category: 'Cloud & Infrastructure',
+    });
+
+    await settle();
+
+    const row = skillRow(1) as HTMLElement;
+    expect(row.textContent).toContain('Angular 2');
+    expect(row.textContent).toContain('Cloud & Infrastructure');
+    expect(row.textContent).not.toContain('Frontend');
+    expect(categoryRow(1)?.textContent).not.toContain('Used by 1 stack');
+    expect(categoryRow(2)?.textContent).toContain('Used by 1 stack');
+  });
+
+  it('updateSkill_WhenDraftNameIsBlank_DoesNotCallApi', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    setSkillDraftName(skillRow(1) as HTMLElement, '   ');
+
+    const save = rowButton(skillRow(1) as HTMLElement, 'Save skill');
+    expect(save.disabled).toBe(true);
+    save.click();
+    fixture.detectChanges();
+
+    expect(http.match(`${environment.portfolioApi}/v1/admin/skill/1`)).toHaveLength(0);
+  });
+
+  it('updateSkill_CancelEdit_MakesNoRequest', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    setSkillDraftName(skillRow(1) as HTMLElement, 'Changed');
+    clickRowButton(skillRow(1) as HTMLElement, 'Cancel skill edit');
+
+    expect(skillRow(1)?.textContent).toContain('Angular');
+    expect(skillRow(1)?.querySelector('[data-testid="skill-edit-name"]')).toBeNull();
+    expect(http.match(`${environment.portfolioApi}/v1/admin/skill/1`)).toHaveLength(0);
+  });
+
+  it('updateSkill_WhenApiRejects_KeepsRowAndShowsInlineError', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Edit skill Angular');
+    setSkillDraftName(skillRow(1) as HTMLElement, 'Renamed');
+    clickRowButton(skillRow(1) as HTMLElement, 'Save skill');
+
+    http
+      .expectOne(`${environment.portfolioApi}/v1/admin/skill/1`)
+      .flush(
+        { title: 'Bad Request', detail: 'Stack name already exists.' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+    await settle();
+
+    expect(skillRow(1)?.textContent).toContain('Angular');
+    expect(skillRow(1)?.querySelector('[data-testid="skill-action-error"]')?.textContent).toContain(
+      'Stack name already exists.',
+    );
+    expect(skillRow(1)?.querySelector('[data-testid="skill-edit-name"]')).not.toBeNull();
+  });
+
+  it('deleteSkill_AfterConfirmation_DeletesAndRemovesRow', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Delete skill Angular');
+    expect(skillRow(1)?.textContent).toContain('Delete Angular?');
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Confirm delete skill Angular');
+
+    const request = http.expectOne(`${environment.portfolioApi}/v1/admin/skill/1`);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.body).toBeNull();
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await settle();
+
+    expect(skillRow(1)).toBeNull();
+    expect(element().textContent).not.toContain('Angular');
+  });
+
+  it('deleteSkill_WhenApiReturns409_KeepsRowAndShowsInlineError', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Delete skill Angular');
+    clickRowButton(skillRow(1) as HTMLElement, 'Confirm delete skill Angular');
+
+    http
+      .expectOne(`${environment.portfolioApi}/v1/admin/skill/1`)
+      .flush(
+        { status: 409, title: 'Conflict', detail: 'Skill is used by projects.' },
+        { status: 409, statusText: 'Conflict' },
+      );
+
+    await settle();
+
+    expect(skillRow(1)).not.toBeNull();
+    expect(skillRow(1)?.querySelector('[data-testid="skill-action-error"]')?.textContent).toContain(
+      'Skill is used by projects.',
+    );
+    expect(skillRow(1)?.querySelector('[data-testid="skill-confirm-delete"]')).not.toBeNull();
+  });
+
+  it('deleteSkill_CancelConfirmation_MakesNoRequest', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    clickRowButton(skillRow(1) as HTMLElement, 'Delete skill Angular');
+    clickRowButton(skillRow(1) as HTMLElement, 'Cancel delete skill');
+
+    expect(skillRow(1)?.textContent).not.toContain('Delete Angular?');
+    expect(http.match(`${environment.portfolioApi}/v1/admin/skill/1`)).toHaveLength(0);
   });
 
   it('theme_UsesSegmentedControlToSetLightAndDark', async () => {
