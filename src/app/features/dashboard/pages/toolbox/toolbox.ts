@@ -182,6 +182,9 @@ export class Toolbox implements OnInit {
 
   protected categoryUsageLabel(categoryName: string): string {
     const count = this.categoryUsage(categoryName);
+    if (count === 0) {
+      return '—';
+    }
     return count === 1 ? 'Used by 1 stack' : `Used by ${count} stacks`;
   }
 

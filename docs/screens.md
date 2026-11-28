@@ -195,8 +195,9 @@ parked, unrouted, source retained.
   `ProblemDetails.detail ?? title`. Add errors stay at their form; row errors
   stay with the affected category or stack row, including a skill `409` when a
   project still references it.
-- **Shows:** category rows with usage counts and row actions, and stack rows with
-  their category and row actions.
+- **Shows:** **Skills / Toolbox** header (“Manage tech stacks and their
+  categories”), plus scrollable tables for categories (Category, Usage,
+  Actions) and skills (Stack, Category, Actions).
 - **Interactions:** add category/stack appends the mapped response to the local
   list. **Edit** turns a category or stack row into an inline form. Category
   **Save** sends the trimmed name and updates the row, loaded skill categories,
@@ -205,7 +206,8 @@ parked, unrouted, source retained.
   category, then replaces the row and the category usage counts. **Delete**
   opens an inline confirmation in either row; cancelling makes no request,
   while confirming removes the row. Categories with skills show a usage count
-  and cannot be deleted from the UI.
+  and cannot be deleted from the UI; unused categories show `—` in the Usage
+  column.
 
 ---
 

@@ -127,6 +127,42 @@ describe('Toolbox', () => {
     expect(element().querySelectorAll('[data-testid="skill-row"]')).toHaveLength(2);
   });
 
+  it('renders categories in a table with category, usage, and actions columns', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    const categoryTable = element().querySelectorAll('table')[0];
+    const headers = [...categoryTable.querySelectorAll('thead th')].map((header) =>
+      header.textContent?.trim(),
+    );
+    expect(headers).toEqual(['Category', 'Usage', 'Actions']);
+    expect(categoryTable.querySelectorAll('tbody [data-testid="category-row"]')).toHaveLength(2);
+  });
+
+  it('rendersUnusedCategory_ShowsDashUsage', async () => {
+    render();
+    flushInitial(categories, []);
+    await settle();
+
+    const row = categoryRow(1) as HTMLElement;
+    expect(row.textContent).toContain('—');
+    expect(row.textContent).not.toContain('Used by');
+  });
+
+  it('renders skills in a table with stack, category, and actions columns', async () => {
+    render();
+    flushInitial();
+    await settle();
+
+    const skillsTable = element().querySelectorAll('table')[1];
+    const headers = [...skillsTable.querySelectorAll('thead th')].map((header) =>
+      header.textContent?.trim(),
+    );
+    expect(headers).toEqual(['Stack', 'Category', 'Actions']);
+    expect(skillsTable.querySelectorAll('tbody [data-testid="skill-row"]')).toHaveLength(2);
+  });
+
   it('load_WhenListsAreEmpty_ShowsEmptyStates', async () => {
     render();
     flushInitial([], []);
